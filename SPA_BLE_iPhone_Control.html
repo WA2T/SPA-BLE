@@ -237,9 +237,19 @@ function parseStatus(text) {
   if (fields.RSSI !== undefined) $('currentRSSI').textContent = fields.RSSI + ' dBm';
   if (fields.QUALITY !== undefined) $('currentQuality').textContent = fields.QUALITY;
 
-  // The firmware reports the active band attenuation. Keep the corresponding
-  // editable field synchronized without overwriting the other band settings.
-  if (fields.BAND !== undefined) {
+  // Synchronize every attenuation field returned by the SPA.
+  // ATTNS has the form: 160m:15,80m:10,...,6m:5
+  if (fields.ATTNS !== undefined) {
+    fields.ATTNS.split(',').forEach(function(item) {
+      const colon = item.indexOf(':');
+      if (colon <= 0) return;
+      const band = item.substring(0, colon);
+      const value = item.substring(colon + 1);
+      const i = BANDS.indexOf(band);
+      if (i >= 0) $('attn-' + i).value = value;
+    });
+  } else if (fields.BAND !== undefined) {
+    // Backward compatibility with older firmware that only returned ATTN.
     const i = BANDS.indexOf(fields.BAND);
     if (i >= 0 && fields.ATTN !== undefined) $('attn-' + i).value = fields.ATTN;
   }
