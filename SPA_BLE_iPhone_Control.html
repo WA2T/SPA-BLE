@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
 <title>SPA BLE Control</title>
 
 <style>
+
   * {
     box-sizing: border-box;
     font-family: Arial, sans-serif;
@@ -159,6 +161,7 @@
   }
 
   @media (max-width: 380px) {
+
     body {
       padding: 10px;
     }
@@ -181,6 +184,7 @@
       padding: 4px;
     }
   }
+
 </style>
 </head>
 
@@ -188,29 +192,47 @@
 
 <h1>Smart Power Attenuator</h1>
 
+
+<!-- =========================================================
+     STATUS PANEL
+     ========================================================= -->
+
 <div class="panel">
 
   <div class="status-grid">
 
     <div>BLE:</div>
-    <div class="value" id="bleState">Disconnected</div>
+    <div class="value" id="bleState">
+      Disconnected
+    </div>
 
     <div>Current Band:</div>
-    <div class="value" id="currentBand">Not detected</div>
+    <div class="value" id="currentBand">
+      Not detected
+    </div>
 
     <div>Attenuation:</div>
-    <div class="value" id="currentAttn">15 dB</div>
+    <div class="value" id="currentAttn">
+      15 dB
+    </div>
 
     <div>Bypass:</div>
-    <div class="value" id="currentBypass">OFF</div>
+    <div class="value" id="currentBypass">
+      OFF
+    </div>
 
     <div>PTT OUT 1:</div>
-    <div class="value" id="currentDelay1">0 ms</div>
+    <div class="value" id="currentDelay1">
+      0 ms
+    </div>
 
     <div>PTT OUT 2:</div>
-    <div class="value" id="currentDelay2">0 ms</div>
+    <div class="value" id="currentDelay2">
+      0 ms
+    </div>
 
   </div>
+
 
   <div class="connection">
 
@@ -224,12 +246,25 @@
 
   </div>
 
+
+  <!--
+       This message area is used only for connection,
+       command, and error messages.
+
+       It is NOT changed by the automatic status polling.
+  -->
+
   <div class="connected" id="message">
     BLE not connected
   </div>
 
 </div>
 
+
+
+<!-- =========================================================
+     ATTENUATION TABLE
+     ========================================================= -->
 
 <div class="panel">
 
@@ -238,11 +273,13 @@
   <table>
 
     <thead>
+
       <tr>
         <th>Band</th>
         <th>Attn (dB)</th>
         <th>Set</th>
       </tr>
+
     </thead>
 
     <tbody id="bandTable"></tbody>
@@ -252,9 +289,15 @@
 </div>
 
 
+
+<!-- =========================================================
+     PTT DELAY SETTINGS
+     ========================================================= -->
+
 <div class="panel">
 
   <h2>PTT Delay Settings</h2>
+
 
   <div class="delay-row">
 
@@ -302,6 +345,11 @@
 </div>
 
 
+
+<!-- =========================================================
+     BYPASS
+     ========================================================= -->
+
 <div class="panel">
 
   <div class="bypass-row">
@@ -321,17 +369,21 @@
 </div>
 
 
+
 <div class="footer">
+
   Use a Web-Bluetooth-capable iPhone browser/app.
   BLE status updates automatically every second while connected.
+
 </div>
+
 
 
 <script>
 
 /*
  * ============================================================
- * SPA BLE UUIDs
+ * BLE UUIDs
  * ============================================================
  */
 
@@ -343,6 +395,7 @@ const COMMAND_UUID =
 
 const STATUS_UUID =
   '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+
 
 
 /*
@@ -366,9 +419,10 @@ const BANDS = [
 ];
 
 
+
 /*
  * ============================================================
- * BLE variables
+ * BLE state
  * ============================================================
  */
 
@@ -381,18 +435,25 @@ let statusCharacteristic = null;
 let statusPollTimer = null;
 
 
+
 /*
  * ============================================================
  * Convenience function
  * ============================================================
  */
 
-const $ = id => document.getElementById(id);
+const $ = id =>
+  document.getElementById(id);
+
 
 
 /*
  * ============================================================
- * Status message
+ * Message display
+ *
+ * This is deliberately NOT updated by parseStatus().
+ * Therefore automatic 1-second polling does not overwrite
+ * useful messages.
  * ============================================================
  */
 
@@ -407,6 +468,7 @@ function setMessage(text, isError = false) {
 }
 
 
+
 /*
  * ============================================================
  * Connection display
@@ -415,15 +477,18 @@ function setMessage(text, isError = false) {
 
 function setConnected(connected) {
 
-  $('connectButton').disabled = connected;
+  $('connectButton').disabled =
+    connected;
 
-  $('disconnectButton').disabled = !connected;
+  $('disconnectButton').disabled =
+    !connected;
 
   $('bleState').textContent =
     connected
       ? 'Connected'
       : 'Disconnected';
 }
+
 
 
 /*
@@ -434,13 +499,18 @@ function setConnected(connected) {
 
 function buildBandTable() {
 
-  const tbody = $('bandTable');
+  const tbody =
+    $('bandTable');
+
 
   BANDS.forEach((band, i) => {
 
-    const tr = document.createElement('tr');
+    const tr =
+      document.createElement('tr');
+
 
     tr.innerHTML =
+
       '<td>' +
       band +
       '</td>' +
@@ -487,14 +557,17 @@ function buildBandTable() {
 
       '</td>';
 
+
     tbody.appendChild(tr);
+
   });
 }
 
 
+
 /*
  * ============================================================
- * Attenuation up/down buttons
+ * Attenuation up/down controls
  * ============================================================
  */
 
@@ -503,28 +576,35 @@ function stepAttn(index, amount) {
   const input =
     $('attn-' + index);
 
-  let v =
+
+  let value =
     Number(input.value);
 
-  if (!Number.isFinite(v)) {
-    v = 15;
+
+  if (!Number.isFinite(value)) {
+    value = 15;
   }
 
-  v += amount;
 
-  v =
+  value += amount;
+
+
+  value =
     Math.max(
       0,
-      Math.min(15, v)
+      Math.min(15, value)
     );
 
-  input.value = v;
+
+  input.value =
+    value;
 }
+
 
 
 /*
  * ============================================================
- * Validate numeric value
+ * Validate numeric input
  * ============================================================
  */
 
@@ -533,8 +613,10 @@ function validNumber(id, min, max) {
   const input =
     $(id);
 
+
   const value =
     Number(input.value);
+
 
   if (
     !Number.isInteger(value) ||
@@ -543,6 +625,7 @@ function validNumber(id, min, max) {
   ) {
 
     input.focus();
+
 
     setMessage(
       'Value must be between ' +
@@ -553,11 +636,14 @@ function validNumber(id, min, max) {
       true
     );
 
+
     return null;
   }
 
+
   return value;
 }
+
 
 
 /*
@@ -578,6 +664,7 @@ async function connectBLE() {
     return;
   }
 
+
   try {
 
     setMessage(
@@ -590,7 +677,9 @@ async function connectBLE() {
 
         filters: [
           {
-            services: [SERVICE_UUID]
+            services: [
+              SERVICE_UUID
+            ]
           }
         ],
 
@@ -629,7 +718,8 @@ async function connectBLE() {
       );
 
 
-    await statusCharacteristic.startNotifications();
+    await statusCharacteristic
+      .startNotifications();
 
 
     statusCharacteristic.addEventListener(
@@ -648,15 +738,17 @@ async function connectBLE() {
 
 
     /*
-     * Begin requesting status once per second.
+     * Begin automatic status polling.
      */
     startStatusPolling();
 
   }
 
+
   catch (err) {
 
     setConnected(false);
+
 
     setMessage(
       'BLE connection failed: ' +
@@ -665,6 +757,7 @@ async function connectBLE() {
     );
   }
 }
+
 
 
 /*
@@ -677,18 +770,25 @@ function disconnected() {
 
   stopStatusPolling();
 
+
   setConnected(false);
 
-  commandCharacteristic = null;
 
-  statusCharacteristic = null;
+  commandCharacteristic =
+    null;
 
-  server = null;
+  statusCharacteristic =
+    null;
+
+  server =
+    null;
+
 
   setMessage(
     'BLE disconnected'
   );
 }
+
 
 
 /*
@@ -712,19 +812,21 @@ async function disconnectBLE() {
 
   }
 
-  catch (err) {}
+  catch (err) {
+    // Nothing required here.
+  }
+
 
   disconnected();
 }
 
 
+
 /*
  * ============================================================
- * Status polling
+ * Start automatic status polling
  *
- * The SPA receives GET once per second.
- * The firmware responds with the complete status,
- * including ATTNS.
+ * A GET command is sent immediately and then once per second.
  * ============================================================
  */
 
@@ -732,13 +834,15 @@ function startStatusPolling() {
 
   stopStatusPolling();
 
+
   /*
-   * Get status immediately.
+   * Get initial status immediately.
    */
   requestStatus();
 
+
   /*
-   * Then every second.
+   * Continue every second.
    */
   statusPollTimer =
     setInterval(
@@ -748,40 +852,48 @@ function startStatusPolling() {
 }
 
 
+
 /*
  * ============================================================
- * Stop status polling
+ * Stop automatic status polling
  * ============================================================
  */
 
 function stopStatusPolling() {
 
-  if (statusPollTimer !== null) {
+  if (
+    statusPollTimer !== null
+  ) {
 
     clearInterval(
       statusPollTimer
     );
 
-    statusPollTimer = null;
+    statusPollTimer =
+      null;
   }
 }
 
 
+
 /*
  * ============================================================
- * Request current SPA status
+ * Request current status
  * ============================================================
  */
 
 async function requestStatus() {
 
-  if (commandCharacteristic) {
+  if (
+    commandCharacteristic
+  ) {
 
     await sendCommand(
       'GET'
     );
   }
 }
+
 
 
 /*
@@ -792,7 +904,9 @@ async function requestStatus() {
 
 async function sendCommand(command) {
 
-  if (!commandCharacteristic) {
+  if (
+    !commandCharacteristic
+  ) {
 
     setMessage(
       'Connect to SPA-BLE first.',
@@ -811,17 +925,17 @@ async function sendCommand(command) {
       );
 
 
-    /*
-     * Prefer writeWithoutResponse when supported.
-     */
     if (
-      commandCharacteristic.writeValueWithoutResponse
+      commandCharacteristic
+        .writeValueWithoutResponse
     ) {
 
       await commandCharacteristic
         .writeValueWithoutResponse(data);
 
-    } else {
+    }
+
+    else {
 
       await commandCharacteristic
         .writeValue(data);
@@ -831,6 +945,7 @@ async function sendCommand(command) {
     return true;
 
   }
+
 
   catch (err) {
 
@@ -845,22 +960,25 @@ async function sendCommand(command) {
 }
 
 
+
 /*
  * ============================================================
  * Parse SPA status
- * ============================================================
  *
- * Expected status contains fields similar to:
+ * The important part here is ATTNS.
  *
- * BAND=20m;
- * ATTN=5;
- * ATTNS=160m:15,80m:15,60m:15,...;
- * BYPASS=0;
- * DELAY1=50;
- * DELAY2=100
+ * Every status response can contain the complete list:
  *
- * The ATTNS field is used to update ALL 11
- * attenuation fields.
+ * ATTNS=160m:15,80m:12,60m:15,...
+ *
+ * All 11 attenuation inputs are synchronized from this field.
+ *
+ * There is intentionally NO:
+ *
+ *     setMessage('Status received');
+ *
+ * Automatic status polling therefore does not overwrite the
+ * useful message displayed to the user.
  * ============================================================
  */
 
@@ -870,12 +988,13 @@ function parseStatus(text) {
 
 
   /*
-   * Break status packet into individual fields.
+   * Split the status packet into fields.
    */
   text.split(';').forEach(part => {
 
     const eq =
       part.indexOf('=');
+
 
     if (eq > 0) {
 
@@ -884,91 +1003,117 @@ function parseStatus(text) {
       ] =
         part.substring(eq + 1);
     }
+
   });
+
 
 
   /*
    * Current band.
    */
-  if (fields.BAND !== undefined) {
+
+  if (
+    fields.BAND !== undefined
+  ) {
 
     $('currentBand').textContent =
       fields.BAND;
   }
 
 
+
   /*
    * Current attenuation.
    */
-  if (fields.ATTN !== undefined) {
+
+  if (
+    fields.ATTN !== undefined
+  ) {
 
     $('currentAttn').textContent =
-      fields.ATTN + ' dB';
+      fields.ATTN +
+      ' dB';
   }
+
 
 
   /*
    * Bypass.
    */
-  if (fields.BYPASS !== undefined) {
+
+  if (
+    fields.BYPASS !== undefined
+  ) {
 
     const on =
       fields.BYPASS === '1';
+
 
     $('currentBypass').textContent =
       on
         ? 'ON'
         : 'OFF';
 
+
     $('bypass').checked =
       on;
   }
 
 
+
   /*
    * PTT OUT 1 delay.
    */
-  if (fields.DELAY1 !== undefined) {
+
+  if (
+    fields.DELAY1 !== undefined
+  ) {
 
     $('currentDelay1').textContent =
-      fields.DELAY1 + ' ms';
+      fields.DELAY1 +
+      ' ms';
+
 
     $('delay1').value =
       fields.DELAY1;
   }
 
 
+
   /*
    * PTT OUT 2 delay.
    */
-  if (fields.DELAY2 !== undefined) {
+
+  if (
+    fields.DELAY2 !== undefined
+  ) {
 
     $('currentDelay2').textContent =
-      fields.DELAY2 + ' ms';
+      fields.DELAY2 +
+      ' ms';
+
 
     $('delay2').value =
       fields.DELAY2;
   }
 
 
+
   /*
    * ==========================================================
-   * IMPORTANT ATTENUATION TABLE UPDATE
+   * Synchronize ALL attenuation values.
    * ==========================================================
    *
-   * The ESP32 sends the complete attenuation table
-   * in the ATTNS field.
+   * Expected format:
    *
-   * Example:
-   *
-   * ATTNS=160m:15,80m:12,60m:15,40m:10,
-   * 30m:15,20m:5,17m:15,15m:8,12m:15,
-   * 10m:4,6m:15
-   *
-   * Update every corresponding input field.
+   * 160m:15,80m:12,60m:15,40m:10,
+   * 30m:15,20m:5,17m:15,15m:8,
+   * 12m:15,10m:4,6m:15
    */
 
-  if (fields.ATTNS !== undefined) {
+  if (
+    fields.ATTNS !== undefined
+  ) {
 
     fields.ATTNS
       .split(',')
@@ -981,7 +1126,10 @@ function parseStatus(text) {
         /*
          * Ignore malformed entries.
          */
-        if (colon <= 0) {
+
+        if (
+          colon <= 0
+        ) {
           return;
         }
 
@@ -1000,16 +1148,22 @@ function parseStatus(text) {
 
 
         const index =
-          BANDS.indexOf(band);
+          BANDS.indexOf(
+            band
+          );
 
 
         /*
-         * Update the matching attenuation input.
+         * Update matching input.
          */
-        if (index >= 0) {
+
+        if (
+          index >= 0
+        ) {
 
           const input =
             $('attn-' + index);
+
 
           if (input) {
 
@@ -1020,17 +1174,17 @@ function parseStatus(text) {
 
       });
 
+  }
 
-  } else if (
+
+  else if (
     fields.BAND !== undefined &&
     fields.ATTN !== undefined
   ) {
 
     /*
-     * Backward compatibility.
-     *
-     * If older firmware does not send ATTNS,
-     * update only the active band's value.
+     * Backward compatibility for firmware that does not
+     * provide ATTNS.
      */
 
     const index =
@@ -1039,7 +1193,9 @@ function parseStatus(text) {
       );
 
 
-    if (index >= 0) {
+    if (
+      index >= 0
+    ) {
 
       $('attn-' + index).value =
         fields.ATTN;
@@ -1047,15 +1203,18 @@ function parseStatus(text) {
   }
 
 
-  setMessage(
-    'Status received'
-  );
+  /*
+   * IMPORTANT:
+   *
+   * No "Status received" message here.
+   */
 }
+
 
 
 /*
  * ============================================================
- * BLE status notification handler
+ * Handle BLE status notification
  * ============================================================
  */
 
@@ -1066,13 +1225,15 @@ function handleStatusNotification(event) {
       event.target.value
     );
 
+
   parseStatus(text);
 }
 
 
+
 /*
  * ============================================================
- * Set band attenuation
+ * Set attenuation
  * ============================================================
  */
 
@@ -1086,7 +1247,9 @@ async function sendAttn(index) {
     );
 
 
-  if (value === null) {
+  if (
+    value === null
+  ) {
     return;
   }
 
@@ -1099,7 +1262,9 @@ async function sendAttn(index) {
 
 
   if (
-    await sendCommand(command)
+    await sendCommand(
+      command
+    )
   ) {
 
     setMessage(
@@ -1111,6 +1276,7 @@ async function sendAttn(index) {
     );
   }
 }
+
 
 
 /*
@@ -1135,7 +1301,9 @@ async function sendDelay(which) {
     );
 
 
-  if (value === null) {
+  if (
+    value === null
+  ) {
     return;
   }
 
@@ -1160,6 +1328,7 @@ async function sendDelay(which) {
 }
 
 
+
 /*
  * ============================================================
  * Set bypass
@@ -1176,7 +1345,8 @@ async function sendBypass() {
 
   if (
     await sendCommand(
-      'BYPASS=' + value
+      'BYPASS=' +
+      value
     )
   ) {
 
@@ -1189,9 +1359,10 @@ async function sendBypass() {
 }
 
 
+
 /*
  * ============================================================
- * Button event handlers
+ * Event handlers
  * ============================================================
  */
 
@@ -1205,6 +1376,7 @@ $('disconnectButton').addEventListener(
   'click',
   disconnectBLE
 );
+
 
 
 /*
