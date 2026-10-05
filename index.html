@@ -352,7 +352,12 @@ function parseStatus(text) {
     if (i >= 0 && !attnDirty[i]) $('attn-' + i).value = fields.ATTN;
   }
 
-  clearPendingMessage();
+  // Keep the message synchronized with the SPA's actual state.
+  // This also reflects changes made from the WiFi page.
+  if (fields.BAND !== undefined && fields.ATTN !== undefined) {
+    pendingMessage = null;
+    setMessage(fields.BAND + ' - ' + fields.ATTN + ' dB');
+  }
 }
 
 function handleStatusNotification(event) {
