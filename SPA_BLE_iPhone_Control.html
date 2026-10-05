@@ -23,7 +23,7 @@
   table { width: 100%; border-collapse: collapse; }
   th, td { border: 1px solid #000; padding: 5px 6px; text-align: left; }
   th:first-child, td:first-child { text-align: center; width: 86px; }
-  th:last-child, td:last-child { text-align: center; }
+  th:last-child, td:last-child { text-align: center; width: 72px; }
   .band-button { width: 100%; min-height: 40px; padding: 6px 5px; }
   .band-button.active { font-weight: bold; }
   input[type=number] { width: 68px; height: 42px; font-size: 18px; padding: 5px; border: 1px solid #000; border-radius: 4px; text-align: center; }
@@ -109,9 +109,6 @@ let device = null;
 let server = null;
 let commandCharacteristic = null;
 let statusCharacteristic = null;
-let lastSentCommand = '';
-let lastExplicitCommand = '';
-let automaticStatusRequest = false;
 const attnDirty = new Array(BANDS.length).fill(false);
 
 const $ = id => document.getElementById(id);
@@ -119,18 +116,6 @@ const $ = id => document.getElementById(id);
 function setMessage(text, isError=false) {
   $('message').textContent = text;
   $('message').className = isError ? 'connected error' : 'connected';
-}
-
-function setSentMessage(command, automatic = false) {
-  lastSentCommand = command;
-  if (!automatic) {
-    lastExplicitCommand = command;
-    setMessage('Command sent: ' + command);
-  }
-}
-
-function setReceivedMessage(text) {
-  setMessage('Status received: ' + text);
 }
 
 function setConnected(connected) {
@@ -168,7 +153,6 @@ function stepAttn(index, amount) {
   let v = Number(input.value);
   if (!Number.isFinite(v)) v = 15;
   input.value = Math.max(0, Math.min(15, v + amount));
-  input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function validNumber(id, min, max) {
@@ -241,10 +225,10 @@ function stopStatusPolling() {
 }
 
 async function requestStatus() {
-  if (commandCharacteristic) await sendCommand('GET', true);
+  if (commandCharacteristic) await sendCommand('GET');
 }
 
-async function sendCommand(command, automatic = false) {
+async function sendCommand(command) {
   if (!commandCharacteristic) {
     setMessage('Connect to SPA-BLE first.', true);
     return false;
@@ -256,7 +240,6 @@ async function sendCommand(command, automatic = false) {
     } else {
       await commandCharacteristic.writeValue(data);
     }
-    setSentMessage(command, automatic);
     return true;
   } catch (err) {
     setMessage('BLE write failed: ' + err.message, true);
@@ -270,18 +253,13 @@ function parseStatus(text) {
     const eq = part.indexOf('=');
     if (eq > 0) fields[part.substring(0, eq)] = part.substring(eq + 1);
   });
-
-  // Match the WiFi page: current band and current attenuation are refreshed
-  // from every status response.
   if (fields.BAND !== undefined) $('currentBand').textContent = fields.BAND;
   if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
-
   if (fields.BYPASS !== undefined) {
     const on = fields.BYPASS === '1';
     $('currentBypass').textContent = on ? 'ON' : 'OFF';
     $('bypass').checked = on;
   }
-
   if (fields.DELAY1 !== undefined) {
     $('currentDelay1').textContent = fields.DELAY1 + ' ms';
     $('delay1').value = fields.DELAY1;
@@ -290,26 +268,13 @@ function parseStatus(text) {
     $('currentDelay2').textContent = fields.DELAY2 + ' ms';
     $('delay2').value = fields.DELAY2;
   }
-
-  // The ESP32 sends ATTNS=160m:15,80m:15,... so synchronize the complete
-  // attenuation table every second, just like the WiFi page.  A field that
-  // the user is currently editing is protected until its value is sent.
-  if (fields.ATTNS !== undefined) {
-    fields.ATTNS.split(',').forEach(item => {
-      const parts = item.split(':');
-      if (parts.length !== 2) return;
-      const band = parts[0];
-      const value = parts[1];
-      const i = BANDS.indexOf(band);
-      if (i >= 0 && !attnDirty[i]) $('attn-' + i).value = value;
-    });
-  } else if (fields.BAND !== undefined && fields.ATTN !== undefined) {
-    // Compatibility with firmware that only reports the active band.
+  // The firmware reports the active band attenuation. Keep the corresponding
+  // editable field synchronized without overwriting the other band settings.
+  if (fields.BAND !== undefined) {
     const i = BANDS.indexOf(fields.BAND);
-    if (i >= 0 && !attnDirty[i]) $('attn-' + i).value = fields.ATTN;
+    if (i >= 0 && fields.ATTN !== undefined && !attnDirty[i]) $('attn-' + i).value = fields.ATTN;
   }
-
-  setReceivedMessage(text);
+  setMessage('Status received');
 }
 
 function handleStatusNotification(event) {
@@ -323,6 +288,7 @@ async function sendAttn(index) {
   const command = 'ATTN=' + BANDS[index] + ',' + value;
   if (await sendCommand(command)) {
     attnDirty[index] = false;
+    setMessage('Setting ' + BANDS[index] + ' to ' + value + ' dB...');
     return true;
   }
   return false;
@@ -361,6 +327,7 @@ async function sendAllAttn() {
       await new Promise(resolve => setTimeout(resolve, 75));
     }
 
+    setMessage('All attenuation values submitted.');
     await sendCommand('GET');
   } finally {
     button.disabled = !commandCharacteristic;
@@ -371,12 +338,12 @@ async function sendDelay(which) {
   const id = which === 1 ? 'delay1' : 'delay2';
   const value = validNumber(id, 0, 250);
   if (value === null) return;
-  await sendCommand('DELAY' + which + '=' + value);
+  if (await sendCommand('DELAY' + which + '=' + value)) setMessage('Setting PTT OUT ' + which + ' delay to ' + value + ' ms...');
 }
 
 async function sendBypass() {
   const value = $('bypass').checked ? '1' : '0';
-  await sendCommand('BYPASS=' + value);
+  if (await sendCommand('BYPASS=' + value)) setMessage(value === '1' ? 'Bypass ON...' : 'Bypass OFF...');
 }
 
 $('connectButton').addEventListener('click', connectBLE);
