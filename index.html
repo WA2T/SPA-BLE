@@ -127,30 +127,64 @@ let commandCharacteristic = null;
 let statusCharacteristic = null;
 let statusPollTimer = null;
 let pendingMessage = null;
+let messageClearTimer = null;
+let pendingTimeoutTimer = null;
 const attnDirty = new Array(BANDS.length).fill(false);
 const delayDirty = [false, false];
 
 const $ = id => document.getElementById(id);
 
-function setMessage(text, isError = false) {
+function setMessage(text, isError = false, clearAfterMs = 0) {
+  if (messageClearTimer) {
+    clearTimeout(messageClearTimer);
+    messageClearTimer = null;
+  }
+
   $('message').textContent = text;
   $('message').className = isError ? 'connected error' : 'connected';
+
+  if (clearAfterMs > 0) {
+    messageClearTimer = setTimeout(function() {
+      $('message').textContent = '';
+      $('message').className = 'connected';
+      messageClearTimer = null;
+    }, clearAfterMs);
+  }
+}
+
+
+function armPendingTimeout() {
+  if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
+  pendingTimeoutTimer = setTimeout(function() {
+    pendingTimeoutTimer = null;
+    if (pendingMessage !== null) {
+      pendingMessage = null;
+      setMessage('');
+    }
+  }, 2000);
 }
 
 function clearPendingMessage() {
   if (pendingMessage === null) return;
+
   const message = pendingMessage;
   pendingMessage = null;
+
+  if (pendingTimeoutTimer) {
+    clearTimeout(pendingTimeoutTimer);
+    pendingTimeoutTimer = null;
+  }
+
   if (message.type === 'attn') {
-    setMessage(message.band + ' set to ' + message.value + ' dB');
+    setMessage(message.band + ' set to ' + message.value + ' dB', false, 2000);
   } else if (message.type === 'delay') {
-    setMessage('PTT OUT ' + message.which + ' delay set to ' + message.value + ' ms');
+    setMessage('PTT OUT ' + message.which + ' delay set to ' + message.value + ' ms', false, 2000);
   } else if (message.type === 'bypass') {
-    setMessage(message.value === '1' ? 'Bypass ON' : 'Bypass OFF');
+    setMessage(message.value === '1' ? 'Bypass ON' : 'Bypass OFF', false, 2000);
   } else if (message.type === 'submitAll') {
-    setMessage('All attenuation values submitted');
+    setMessage('All attenuation values saved', false, 2000);
   } else if (message.type === 'delays') {
-    setMessage('PTT delays saved');
+    setMessage('PTT delays saved', false, 2000);
   }
 }
 
@@ -352,12 +386,7 @@ function parseStatus(text) {
     if (i >= 0 && !attnDirty[i]) $('attn-' + i).value = fields.ATTN;
   }
 
-  // Keep the message synchronized with the SPA's actual state.
-  // This also reflects changes made from the WiFi page.
-  if (fields.BAND !== undefined && fields.ATTN !== undefined) {
-    pendingMessage = null;
-    setMessage(fields.BAND + ' - ' + fields.ATTN + ' dB');
-  }
+  clearPendingMessage();
 }
 
 function handleStatusNotification(event) {
@@ -372,6 +401,7 @@ async function sendAttn(index) {
   if (await sendCommand(command)) {
     attnDirty[index] = false;
     pendingMessage = { type: 'attn', band: BANDS[index], value: value };
+    armPendingTimeout();
     setMessage('Setting ' + BANDS[index] + ' to ' + value + ' dB...');
     return true;
   }
@@ -408,6 +438,7 @@ async function sendAllAttn() {
     }
 
     pendingMessage = { type: 'submitAll' };
+    armPendingTimeout();
     setMessage('Submitting all attenuation values...');
     await sendCommand('GET');
   } finally {
@@ -440,6 +471,7 @@ async function saveDelays() {
     delayDirty[1] = false;
 
     pendingMessage = { type: 'delays' };
+    armPendingTimeout();
     setMessage('Saving PTT delays...');
     await new Promise(resolve => setTimeout(resolve, 75));
     await sendCommand('GET');
@@ -453,6 +485,7 @@ async function sendBypass() {
   const value = $('bypass').checked ? '1' : '0';
   if (await sendCommand('BYPASS=' + value)) {
     pendingMessage = { type: 'bypass', value: value };
+    armPendingTimeout();
     setMessage(value === '1' ? 'Bypass ON...' : 'Bypass OFF...');
   }
 }
