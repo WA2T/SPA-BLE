@@ -461,6 +461,11 @@ $('bypass').addEventListener('change', sendBypass);
 $('delay1').addEventListener('input', () => { delayDirty[0] = true; });
 $('delay2').addEventListener('input', () => { delayDirty[1] = true; });
 
+$('delay1').addEventListener('change', async function() {
+  if (!delayDirty[0]) return;
+  await sendDelay(1);
+});
+
 $('delay1').addEventListener('keydown', async event => {
   if (event.key === 'Enter') {
     event.preventDefault();
@@ -468,6 +473,11 @@ $('delay1').addEventListener('keydown', async event => {
     $('delay1').blur();
   }
 });
+$('delay2').addEventListener('change', async function() {
+  if (!delayDirty[1]) return;
+  await sendDelay(2);
+});
+
 $('delay2').addEventListener('keydown', async event => {
   if (event.key === 'Enter') {
     event.preventDefault();
