@@ -6,288 +6,1218 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>SPA BLE Control</title>
+
 <style>
-  * { box-sizing: border-box; font-family: Arial, sans-serif; font-weight: bold; }
-  body { margin: 0; padding: 14px; font-size: 18px; background: #fff; color: #000; }
-  h1 { font-size: 26px; margin: 4px 0 12px; }
-  h2 { font-size: 21px; margin: 14px 0 9px; }
-  .panel { border: 1px solid #000; border-radius: 6px; padding: 10px; margin-bottom: 12px; }
-  .status-grid { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; }
-  .value { text-align: right; }
-  .connection { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-  button { font-size: 18px; min-height: 44px; padding: 8px 13px; border: 1px solid #000; border-radius: 5px; background: #f2f2f2; color: #000; }
-  button:disabled { opacity: .45; }
-  .connected { font-size: 18px; padding: 8px 0 2px; }
-  .ok { font-weight: bold; }
-  .error { color: #b00000; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { border: 1px solid #000; padding: 5px 6px; text-align: left; }
-  th:last-child, td:last-child { text-align: center; width: 72px; }
-  input[type=number] { width: 68px; height: 42px; font-size: 18px; padding: 5px; border: 1px solid #000; border-radius: 4px; text-align: center; }
-  .row-controls { display: flex; align-items: center; gap: 6px; }
-  .stepper { display: flex; flex-direction: column; gap: 2px; }
-  .stepper button { min-height: 19px; height: 19px; width: 28px; padding: 0; font-size: 13px; line-height: 15px; }
-  .delay-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 9px 0; }
-  .delay-row label { flex: 1; }
-  .bypass-row { display: flex; align-items: center; gap: 10px; }
-  .bypass-row input { width: 24px; height: 24px; }
-  .footer { font-size: 15px; font-weight: normal; margin-top: 10px; line-height: 1.35; }
+  * {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+  }
+
+  body {
+    margin: 0;
+    padding: 14px;
+    font-size: 18px;
+    background: #fff;
+    color: #000;
+  }
+
+  h1 {
+    font-size: 26px;
+    margin: 4px 0 12px;
+  }
+
+  h2 {
+    font-size: 21px;
+    margin: 14px 0 9px;
+  }
+
+  .panel {
+    border: 1px solid #000;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 12px;
+  }
+
+  .value {
+    text-align: right;
+  }
+
+  .connection {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  button {
+    font-size: 18px;
+    min-height: 44px;
+    padding: 8px 13px;
+    border: 1px solid #000;
+    border-radius: 5px;
+    background: #f2f2f2;
+    color: #000;
+  }
+
+  button:disabled {
+    opacity: .45;
+  }
+
+  .connected {
+    font-size: 18px;
+    padding: 8px 0 2px;
+  }
+
+  .error {
+    color: #b00000;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #000;
+    padding: 5px 6px;
+    text-align: left;
+  }
+
+  th:last-child,
+  td:last-child {
+    text-align: center;
+    width: 72px;
+  }
+
+  input[type=number] {
+    width: 68px;
+    height: 42px;
+    font-size: 18px;
+    padding: 5px;
+    border: 1px solid #000;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  .row-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stepper {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stepper button {
+    min-height: 19px;
+    height: 19px;
+    width: 28px;
+    padding: 0;
+    font-size: 13px;
+    line-height: 15px;
+  }
+
+  .delay-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 9px 0;
+  }
+
+  .delay-row label {
+    flex: 1;
+  }
+
+  .bypass-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bypass-row input {
+    width: 24px;
+    height: 24px;
+  }
+
+  .footer {
+    font-size: 15px;
+    font-weight: normal;
+    margin-top: 10px;
+    line-height: 1.35;
+  }
+
   @media (max-width: 380px) {
-    body { padding: 10px; }
-    h1 { font-size: 24px; }
-    h2 { font-size: 20px; }
-    button, input[type=number] { font-size: 17px; }
-    th, td { padding: 4px; }
+    body {
+      padding: 10px;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    button,
+    input[type=number] {
+      font-size: 17px;
+    }
+
+    th,
+    td {
+      padding: 4px;
+    }
   }
 </style>
 </head>
+
 <body>
+
 <h1>Smart Power Attenuator</h1>
 
 <div class="panel">
+
   <div class="status-grid">
-    <div>BLE:</div><div class="value" id="bleState">Disconnected</div>
-    <div>Current Band:</div><div class="value" id="currentBand">Not detected</div>
-    <div>Attenuation:</div><div class="value" id="currentAttn">15 dB</div>
-    <div>Bypass:</div><div class="value" id="currentBypass">OFF</div>
-    <div>PTT OUT 1:</div><div class="value" id="currentDelay1">0 ms</div>
-    <div>PTT OUT 2:</div><div class="value" id="currentDelay2">0 ms</div>
+
+    <div>BLE:</div>
+    <div class="value" id="bleState">Disconnected</div>
+
+    <div>Current Band:</div>
+    <div class="value" id="currentBand">Not detected</div>
+
+    <div>Attenuation:</div>
+    <div class="value" id="currentAttn">15 dB</div>
+
+    <div>Bypass:</div>
+    <div class="value" id="currentBypass">OFF</div>
+
+    <div>PTT OUT 1:</div>
+    <div class="value" id="currentDelay1">0 ms</div>
+
+    <div>PTT OUT 2:</div>
+    <div class="value" id="currentDelay2">0 ms</div>
+
   </div>
+
   <div class="connection">
-    <button id="connectButton">Connect BLE</button>
-    <button id="disconnectButton" disabled>Disconnect</button>
+
+    <button id="connectButton">
+      Connect BLE
+    </button>
+
+    <button id="disconnectButton" disabled>
+      Disconnect
+    </button>
+
   </div>
-  <div class="connected" id="message">BLE not connected</div>
+
+  <div class="connected" id="message">
+    BLE not connected
+  </div>
+
 </div>
 
+
 <div class="panel">
+
   <h2>TX Attenuation by Band</h2>
+
   <table>
-    <thead><tr><th>Band</th><th>Attn (dB)</th><th>Set</th></tr></thead>
+
+    <thead>
+      <tr>
+        <th>Band</th>
+        <th>Attn (dB)</th>
+        <th>Set</th>
+      </tr>
+    </thead>
+
     <tbody id="bandTable"></tbody>
+
   </table>
+
 </div>
 
+
 <div class="panel">
+
   <h2>PTT Delay Settings</h2>
+
   <div class="delay-row">
-    <label for="delay1">PTT OUT 1:</label>
-    <input id="delay1" type="number" min="0" max="250" value="0" inputmode="numeric">
-    <button onclick="sendDelay(1)">Set</button>
+
+    <label for="delay1">
+      PTT OUT 1:
+    </label>
+
+    <input
+      id="delay1"
+      type="number"
+      min="0"
+      max="250"
+      value="0"
+      inputmode="numeric"
+    >
+
+    <button onclick="sendDelay(1)">
+      Set
+    </button>
+
   </div>
+
+
   <div class="delay-row">
-    <label for="delay2">PTT OUT 2:</label>
-    <input id="delay2" type="number" min="0" max="250" value="0" inputmode="numeric">
-    <button onclick="sendDelay(2)">Set</button>
+
+    <label for="delay2">
+      PTT OUT 2:
+    </label>
+
+    <input
+      id="delay2"
+      type="number"
+      min="0"
+      max="250"
+      value="0"
+      inputmode="numeric"
+    >
+
+    <button onclick="sendDelay(2)">
+      Set
+    </button>
+
   </div>
+
 </div>
 
+
 <div class="panel">
+
   <div class="bypass-row">
-    <input id="bypass" type="checkbox" onchange="sendBypass()">
-    <label for="bypass">Bypass SPA Attn (TX) Path</label>
+
+    <input
+      id="bypass"
+      type="checkbox"
+      onchange="sendBypass()"
+    >
+
+    <label for="bypass">
+      Bypass SPA Attn (TX) Path
+    </label>
+
   </div>
+
 </div>
+
 
 <div class="footer">
-  Use a Web-Bluetooth-capable iPhone browser/app. BLE status updates automatically every second while connected.
+  Use a Web-Bluetooth-capable iPhone browser/app.
+  BLE status updates automatically every second while connected.
 </div>
 
+
 <script>
-const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-const COMMAND_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-const STATUS_UUID  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-const BANDS = ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m'];
+
+/*
+ * ============================================================
+ * SPA BLE UUIDs
+ * ============================================================
+ */
+
+const SERVICE_UUID =
+  '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+
+const COMMAND_UUID =
+  '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+
+const STATUS_UUID =
+  '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+
+
+/*
+ * ============================================================
+ * Band list
+ * ============================================================
+ */
+
+const BANDS = [
+  '160m',
+  '80m',
+  '60m',
+  '40m',
+  '30m',
+  '20m',
+  '17m',
+  '15m',
+  '12m',
+  '10m',
+  '6m'
+];
+
+
+/*
+ * ============================================================
+ * BLE variables
+ * ============================================================
+ */
 
 let device = null;
 let server = null;
+
 let commandCharacteristic = null;
 let statusCharacteristic = null;
 
+let statusPollTimer = null;
+
+
+/*
+ * ============================================================
+ * Convenience function
+ * ============================================================
+ */
+
 const $ = id => document.getElementById(id);
 
-function setMessage(text, isError=false) {
+
+/*
+ * ============================================================
+ * Status message
+ * ============================================================
+ */
+
+function setMessage(text, isError = false) {
+
   $('message').textContent = text;
-  $('message').className = isError ? 'connected error' : 'connected';
+
+  $('message').className =
+    isError
+      ? 'connected error'
+      : 'connected';
 }
+
+
+/*
+ * ============================================================
+ * Connection display
+ * ============================================================
+ */
 
 function setConnected(connected) {
+
   $('connectButton').disabled = connected;
+
   $('disconnectButton').disabled = !connected;
-  $('bleState').textContent = connected ? 'Connected' : 'Disconnected';
+
+  $('bleState').textContent =
+    connected
+      ? 'Connected'
+      : 'Disconnected';
 }
 
+
+/*
+ * ============================================================
+ * Build attenuation table
+ * ============================================================
+ */
+
 function buildBandTable() {
+
   const tbody = $('bandTable');
+
   BANDS.forEach((band, i) => {
+
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td>' + band + '</td>' +
-      '<td><div class="row-controls"><input id="attn-' + i + '" type="number" min="0" max="15" value="15" inputmode="numeric"><div class="stepper">' +
-      '<button type="button" onclick="stepAttn(' + i + ',1)">▲</button>' +
-      '<button type="button" onclick="stepAttn(' + i + ',-1)">▼</button></div></div></td>' +
-      '<td><button type="button" onclick="sendAttn(' + i + ')">Set</button></td>';
+
+    tr.innerHTML =
+      '<td>' +
+      band +
+      '</td>' +
+
+      '<td>' +
+
+      '<div class="row-controls">' +
+
+      '<input ' +
+      'id="attn-' + i + '" ' +
+      'type="number" ' +
+      'min="0" ' +
+      'max="15" ' +
+      'value="15" ' +
+      'inputmode="numeric">' +
+
+      '<div class="stepper">' +
+
+      '<button ' +
+      'type="button" ' +
+      'onclick="stepAttn(' + i + ',1)">' +
+      '▲' +
+      '</button>' +
+
+      '<button ' +
+      'type="button" ' +
+      'onclick="stepAttn(' + i + ',-1)">' +
+      '▼' +
+      '</button>' +
+
+      '</div>' +
+
+      '</div>' +
+
+      '</td>' +
+
+      '<td>' +
+
+      '<button ' +
+      'type="button" ' +
+      'onclick="sendAttn(' + i + ')">' +
+      'Set' +
+      '</button>' +
+
+      '</td>';
+
     tbody.appendChild(tr);
   });
 }
 
+
+/*
+ * ============================================================
+ * Attenuation up/down buttons
+ * ============================================================
+ */
+
 function stepAttn(index, amount) {
-  const input = $('attn-' + index);
-  let v = Number(input.value);
-  if (!Number.isFinite(v)) v = 15;
-  input.value = Math.max(0, Math.min(15, v + amount));
+
+  const input =
+    $('attn-' + index);
+
+  let v =
+    Number(input.value);
+
+  if (!Number.isFinite(v)) {
+    v = 15;
+  }
+
+  v += amount;
+
+  v =
+    Math.max(
+      0,
+      Math.min(15, v)
+    );
+
+  input.value = v;
 }
 
+
+/*
+ * ============================================================
+ * Validate numeric value
+ * ============================================================
+ */
+
 function validNumber(id, min, max) {
-  const input = $(id);
-  const value = Number(input.value);
-  if (!Number.isInteger(value) || value < min || value > max) {
+
+  const input =
+    $(id);
+
+  const value =
+    Number(input.value);
+
+  if (
+    !Number.isInteger(value) ||
+    value < min ||
+    value > max
+  ) {
+
     input.focus();
-    setMessage('Value must be between ' + min + ' and ' + max + '.', true);
+
+    setMessage(
+      'Value must be between ' +
+      min +
+      ' and ' +
+      max +
+      '.',
+      true
+    );
+
     return null;
   }
+
   return value;
 }
 
+
+/*
+ * ============================================================
+ * Connect BLE
+ * ============================================================
+ */
+
 async function connectBLE() {
+
   if (!navigator.bluetooth) {
-    setMessage('Web Bluetooth is not available in this browser.', true);
+
+    setMessage(
+      'Web Bluetooth is not available in this browser.',
+      true
+    );
+
     return;
   }
+
   try {
-    setMessage('Selecting SPA-BLE...');
-    device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [SERVICE_UUID] }],
-      optionalServices: [SERVICE_UUID]
-    });
-    device.addEventListener('gattserverdisconnected', disconnected);
-    server = await device.gatt.connect();
-    const service = await server.getPrimaryService(SERVICE_UUID);
-    commandCharacteristic = await service.getCharacteristic(COMMAND_UUID);
-    statusCharacteristic = await service.getCharacteristic(STATUS_UUID);
+
+    setMessage(
+      'Selecting SPA-BLE...'
+    );
+
+
+    device =
+      await navigator.bluetooth.requestDevice({
+
+        filters: [
+          {
+            services: [SERVICE_UUID]
+          }
+        ],
+
+        optionalServices: [
+          SERVICE_UUID
+        ]
+
+      });
+
+
+    device.addEventListener(
+      'gattserverdisconnected',
+      disconnected
+    );
+
+
+    server =
+      await device.gatt.connect();
+
+
+    const service =
+      await server.getPrimaryService(
+        SERVICE_UUID
+      );
+
+
+    commandCharacteristic =
+      await service.getCharacteristic(
+        COMMAND_UUID
+      );
+
+
+    statusCharacteristic =
+      await service.getCharacteristic(
+        STATUS_UUID
+      );
+
+
     await statusCharacteristic.startNotifications();
-    statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
+
+
+    statusCharacteristic.addEventListener(
+      'characteristicvaluechanged',
+      handleStatusNotification
+    );
+
+
     setConnected(true);
-    setMessage('Connected to ' + (device.name || 'SPA-BLE'));
+
+
+    setMessage(
+      'Connected to ' +
+      (device.name || 'SPA-BLE')
+    );
+
+
+    /*
+     * Begin requesting status once per second.
+     */
     startStatusPolling();
-  } catch (err) {
+
+  }
+
+  catch (err) {
+
     setConnected(false);
-    setMessage('BLE connection failed: ' + err.message, true);
+
+    setMessage(
+      'BLE connection failed: ' +
+      err.message,
+      true
+    );
   }
 }
 
+
+/*
+ * ============================================================
+ * BLE disconnected
+ * ============================================================
+ */
+
 function disconnected() {
+
   stopStatusPolling();
+
   setConnected(false);
+
   commandCharacteristic = null;
+
   statusCharacteristic = null;
+
   server = null;
-  setMessage('BLE disconnected');
+
+  setMessage(
+    'BLE disconnected'
+  );
 }
 
+
+/*
+ * ============================================================
+ * Disconnect BLE
+ * ============================================================
+ */
+
 async function disconnectBLE() {
+
   try {
-    if (device && device.gatt && device.gatt.connected) device.gatt.disconnect();
-  } catch (err) {}
+
+    if (
+      device &&
+      device.gatt &&
+      device.gatt.connected
+    ) {
+
+      device.gatt.disconnect();
+    }
+
+  }
+
+  catch (err) {}
+
   disconnected();
 }
 
-let statusPollTimer = null;
+
+/*
+ * ============================================================
+ * Status polling
+ *
+ * The SPA receives GET once per second.
+ * The firmware responds with the complete status,
+ * including ATTNS.
+ * ============================================================
+ */
 
 function startStatusPolling() {
+
   stopStatusPolling();
+
+  /*
+   * Get status immediately.
+   */
   requestStatus();
-  statusPollTimer = setInterval(requestStatus, 1000);
+
+  /*
+   * Then every second.
+   */
+  statusPollTimer =
+    setInterval(
+      requestStatus,
+      1000
+    );
 }
 
+
+/*
+ * ============================================================
+ * Stop status polling
+ * ============================================================
+ */
+
 function stopStatusPolling() {
+
   if (statusPollTimer !== null) {
-    clearInterval(statusPollTimer);
+
+    clearInterval(
+      statusPollTimer
+    );
+
     statusPollTimer = null;
   }
 }
 
+
+/*
+ * ============================================================
+ * Request current SPA status
+ * ============================================================
+ */
+
 async function requestStatus() {
-  if (commandCharacteristic) await sendCommand('GET');
+
+  if (commandCharacteristic) {
+
+    await sendCommand(
+      'GET'
+    );
+  }
 }
+
+
+/*
+ * ============================================================
+ * Send BLE command
+ * ============================================================
+ */
 
 async function sendCommand(command) {
+
   if (!commandCharacteristic) {
-    setMessage('Connect to SPA-BLE first.', true);
+
+    setMessage(
+      'Connect to SPA-BLE first.',
+      true
+    );
+
     return false;
   }
+
+
   try {
-    const data = new TextEncoder().encode(command);
-    if (commandCharacteristic.writeValueWithoutResponse) {
-      await commandCharacteristic.writeValueWithoutResponse(data);
+
+    const data =
+      new TextEncoder().encode(
+        command
+      );
+
+
+    /*
+     * Prefer writeWithoutResponse when supported.
+     */
+    if (
+      commandCharacteristic.writeValueWithoutResponse
+    ) {
+
+      await commandCharacteristic
+        .writeValueWithoutResponse(data);
+
     } else {
-      await commandCharacteristic.writeValue(data);
+
+      await commandCharacteristic
+        .writeValue(data);
     }
+
+
     return true;
-  } catch (err) {
-    setMessage('BLE write failed: ' + err.message, true);
+
+  }
+
+  catch (err) {
+
+    setMessage(
+      'BLE write failed: ' +
+      err.message,
+      true
+    );
+
     return false;
   }
 }
+
+
+/*
+ * ============================================================
+ * Parse SPA status
+ * ============================================================
+ *
+ * Expected status contains fields similar to:
+ *
+ * BAND=20m;
+ * ATTN=5;
+ * ATTNS=160m:15,80m:15,60m:15,...;
+ * BYPASS=0;
+ * DELAY1=50;
+ * DELAY2=100
+ *
+ * The ATTNS field is used to update ALL 11
+ * attenuation fields.
+ * ============================================================
+ */
 
 function parseStatus(text) {
+
   const fields = {};
+
+
+  /*
+   * Break status packet into individual fields.
+   */
   text.split(';').forEach(part => {
-    const eq = part.indexOf('=');
-    if (eq > 0) fields[part.substring(0, eq)] = part.substring(eq + 1);
+
+    const eq =
+      part.indexOf('=');
+
+    if (eq > 0) {
+
+      fields[
+        part.substring(0, eq)
+      ] =
+        part.substring(eq + 1);
+    }
   });
-  if (fields.BAND !== undefined) $('currentBand').textContent = fields.BAND;
-  if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
-  if (fields.BYPASS !== undefined) {
-    const on = fields.BYPASS === '1';
-    $('currentBypass').textContent = on ? 'ON' : 'OFF';
-    $('bypass').checked = on;
-  }
-  if (fields.DELAY1 !== undefined) {
-    $('currentDelay1').textContent = fields.DELAY1 + ' ms';
-    $('delay1').value = fields.DELAY1;
-  }
-  if (fields.DELAY2 !== undefined) {
-    $('currentDelay2').textContent = fields.DELAY2 + ' ms';
-    $('delay2').value = fields.DELAY2;
-  }
-  // The firmware reports the active band attenuation. Keep the corresponding
-  // editable field synchronized without overwriting the other band settings.
+
+
+  /*
+   * Current band.
+   */
   if (fields.BAND !== undefined) {
-    const i = BANDS.indexOf(fields.BAND);
-    if (i >= 0 && fields.ATTN !== undefined) $('attn-' + i).value = fields.ATTN;
+
+    $('currentBand').textContent =
+      fields.BAND;
   }
-  setMessage('Status received');
+
+
+  /*
+   * Current attenuation.
+   */
+  if (fields.ATTN !== undefined) {
+
+    $('currentAttn').textContent =
+      fields.ATTN + ' dB';
+  }
+
+
+  /*
+   * Bypass.
+   */
+  if (fields.BYPASS !== undefined) {
+
+    const on =
+      fields.BYPASS === '1';
+
+    $('currentBypass').textContent =
+      on
+        ? 'ON'
+        : 'OFF';
+
+    $('bypass').checked =
+      on;
+  }
+
+
+  /*
+   * PTT OUT 1 delay.
+   */
+  if (fields.DELAY1 !== undefined) {
+
+    $('currentDelay1').textContent =
+      fields.DELAY1 + ' ms';
+
+    $('delay1').value =
+      fields.DELAY1;
+  }
+
+
+  /*
+   * PTT OUT 2 delay.
+   */
+  if (fields.DELAY2 !== undefined) {
+
+    $('currentDelay2').textContent =
+      fields.DELAY2 + ' ms';
+
+    $('delay2').value =
+      fields.DELAY2;
+  }
+
+
+  /*
+   * ==========================================================
+   * IMPORTANT ATTENUATION TABLE UPDATE
+   * ==========================================================
+   *
+   * The ESP32 sends the complete attenuation table
+   * in the ATTNS field.
+   *
+   * Example:
+   *
+   * ATTNS=160m:15,80m:12,60m:15,40m:10,
+   * 30m:15,20m:5,17m:15,15m:8,12m:15,
+   * 10m:4,6m:15
+   *
+   * Update every corresponding input field.
+   */
+
+  if (fields.ATTNS !== undefined) {
+
+    fields.ATTNS
+      .split(',')
+      .forEach(function(item) {
+
+        const colon =
+          item.indexOf(':');
+
+
+        /*
+         * Ignore malformed entries.
+         */
+        if (colon <= 0) {
+          return;
+        }
+
+
+        const band =
+          item.substring(
+            0,
+            colon
+          );
+
+
+        const value =
+          item.substring(
+            colon + 1
+          );
+
+
+        const index =
+          BANDS.indexOf(band);
+
+
+        /*
+         * Update the matching attenuation input.
+         */
+        if (index >= 0) {
+
+          const input =
+            $('attn-' + index);
+
+          if (input) {
+
+            input.value =
+              value;
+          }
+        }
+
+      });
+
+
+  } else if (
+    fields.BAND !== undefined &&
+    fields.ATTN !== undefined
+  ) {
+
+    /*
+     * Backward compatibility.
+     *
+     * If older firmware does not send ATTNS,
+     * update only the active band's value.
+     */
+
+    const index =
+      BANDS.indexOf(
+        fields.BAND
+      );
+
+
+    if (index >= 0) {
+
+      $('attn-' + index).value =
+        fields.ATTN;
+    }
+  }
+
+
+  setMessage(
+    'Status received'
+  );
 }
 
+
+/*
+ * ============================================================
+ * BLE status notification handler
+ * ============================================================
+ */
+
 function handleStatusNotification(event) {
-  const text = new TextDecoder().decode(event.target.value);
+
+  const text =
+    new TextDecoder().decode(
+      event.target.value
+    );
+
   parseStatus(text);
 }
 
+
+/*
+ * ============================================================
+ * Set band attenuation
+ * ============================================================
+ */
+
 async function sendAttn(index) {
-  const value = validNumber('attn-' + index, 0, 15);
-  if (value === null) return;
-  const command = 'ATTN=' + BANDS[index] + ',' + value;
-  if (await sendCommand(command)) setMessage('Setting ' + BANDS[index] + ' to ' + value + ' dB...');
+
+  const value =
+    validNumber(
+      'attn-' + index,
+      0,
+      15
+    );
+
+
+  if (value === null) {
+    return;
+  }
+
+
+  const command =
+    'ATTN=' +
+    BANDS[index] +
+    ',' +
+    value;
+
+
+  if (
+    await sendCommand(command)
+  ) {
+
+    setMessage(
+      'Setting ' +
+      BANDS[index] +
+      ' to ' +
+      value +
+      ' dB...'
+    );
+  }
 }
+
+
+/*
+ * ============================================================
+ * Set PTT delay
+ * ============================================================
+ */
 
 async function sendDelay(which) {
-  const id = which === 1 ? 'delay1' : 'delay2';
-  const value = validNumber(id, 0, 250);
-  if (value === null) return;
-  if (await sendCommand('DELAY' + which + '=' + value)) setMessage('Setting PTT OUT ' + which + ' delay to ' + value + ' ms...');
+
+  const id =
+    which === 1
+      ? 'delay1'
+      : 'delay2';
+
+
+  const value =
+    validNumber(
+      id,
+      0,
+      250
+    );
+
+
+  if (value === null) {
+    return;
+  }
+
+
+  if (
+    await sendCommand(
+      'DELAY' +
+      which +
+      '=' +
+      value
+    )
+  ) {
+
+    setMessage(
+      'Setting PTT OUT ' +
+      which +
+      ' delay to ' +
+      value +
+      ' ms...'
+    );
+  }
 }
+
+
+/*
+ * ============================================================
+ * Set bypass
+ * ============================================================
+ */
 
 async function sendBypass() {
-  const value = $('bypass').checked ? '1' : '0';
-  if (await sendCommand('BYPASS=' + value)) setMessage(value === '1' ? 'Bypass ON...' : 'Bypass OFF...');
+
+  const value =
+    $('bypass').checked
+      ? '1'
+      : '0';
+
+
+  if (
+    await sendCommand(
+      'BYPASS=' + value
+    )
+  ) {
+
+    setMessage(
+      value === '1'
+        ? 'Bypass ON...'
+        : 'Bypass OFF...'
+    );
+  }
 }
 
-$('connectButton').addEventListener('click', connectBLE);
-$('disconnectButton').addEventListener('click', disconnectBLE);
+
+/*
+ * ============================================================
+ * Button event handlers
+ * ============================================================
+ */
+
+$('connectButton').addEventListener(
+  'click',
+  connectBLE
+);
+
+
+$('disconnectButton').addEventListener(
+  'click',
+  disconnectBLE
+);
+
+
+/*
+ * ============================================================
+ * Initialize page
+ * ============================================================
+ */
 
 buildBandTable();
+
 setConnected(false);
+
 </script>
+
 </body>
 </html>
