@@ -52,13 +52,10 @@
     <div>Bypass:</div><div class="value" id="currentBypass">OFF</div>
     <div>PTT OUT 1:</div><div class="value" id="currentDelay1">0 ms</div>
     <div>PTT OUT 2:</div><div class="value" id="currentDelay2">0 ms</div>
-    <div>WiFi RSSI:</div><div class="value" id="currentRSSI">--</div>
-    <div>WiFi Quality:</div><div class="value" id="currentQuality">--</div>
   </div>
   <div class="connection">
     <button id="connectButton">Connect BLE</button>
     <button id="disconnectButton" disabled>Disconnect</button>
-    <button id="getButton" disabled>GET Status</button>
   </div>
   <div class="connected" id="message">BLE not connected</div>
 </div>
@@ -93,7 +90,7 @@
 </div>
 
 <div class="footer">
-  Use a Web-Bluetooth-capable iPhone browser/app. Tap <b>GET Status</b> whenever you want a fresh reading; the page does not poll BLE continuously.
+  Use a Web-Bluetooth-capable iPhone browser/app. BLE status updates automatically every second while connected.
 </div>
 
 <script>
@@ -117,7 +114,6 @@ function setMessage(text, isError=false) {
 function setConnected(connected) {
   $('connectButton').disabled = connected;
   $('disconnectButton').disabled = !connected;
-  $('getButton').disabled = !connected;
   $('bleState').textContent = connected ? 'Connected' : 'Disconnected';
 }
 
@@ -172,7 +168,7 @@ async function connectBLE() {
     statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
     setConnected(true);
     setMessage('Connected to ' + (device.name || 'SPA-BLE'));
-    await sendCommand('GET');
+    startStatusPolling();
   } catch (err) {
     setConnected(false);
     setMessage('BLE connection failed: ' + err.message, true);
@@ -180,6 +176,7 @@ async function connectBLE() {
 }
 
 function disconnected() {
+  stopStatusPolling();
   setConnected(false);
   commandCharacteristic = null;
   statusCharacteristic = null;
@@ -192,6 +189,25 @@ async function disconnectBLE() {
     if (device && device.gatt && device.gatt.connected) device.gatt.disconnect();
   } catch (err) {}
   disconnected();
+}
+
+let statusPollTimer = null;
+
+function startStatusPolling() {
+  stopStatusPolling();
+  requestStatus();
+  statusPollTimer = setInterval(requestStatus, 1000);
+}
+
+function stopStatusPolling() {
+  if (statusPollTimer !== null) {
+    clearInterval(statusPollTimer);
+    statusPollTimer = null;
+  }
+}
+
+async function requestStatus() {
+  if (commandCharacteristic) await sendCommand('GET');
 }
 
 async function sendCommand(command) {
@@ -234,22 +250,9 @@ function parseStatus(text) {
     $('currentDelay2').textContent = fields.DELAY2 + ' ms';
     $('delay2').value = fields.DELAY2;
   }
-  if (fields.RSSI !== undefined) $('currentRSSI').textContent = fields.RSSI + ' dBm';
-  if (fields.QUALITY !== undefined) $('currentQuality').textContent = fields.QUALITY;
-
-  // Synchronize every attenuation field returned by the SPA.
-  // ATTNS has the form: 160m:15,80m:10,...,6m:5
-  if (fields.ATTNS !== undefined) {
-    fields.ATTNS.split(',').forEach(function(item) {
-      const colon = item.indexOf(':');
-      if (colon <= 0) return;
-      const band = item.substring(0, colon);
-      const value = item.substring(colon + 1);
-      const i = BANDS.indexOf(band);
-      if (i >= 0) $('attn-' + i).value = value;
-    });
-  } else if (fields.BAND !== undefined) {
-    // Backward compatibility with older firmware that only returned ATTN.
+  // The firmware reports the active band attenuation. Keep the corresponding
+  // editable field synchronized without overwriting the other band settings.
+  if (fields.BAND !== undefined) {
     const i = BANDS.indexOf(fields.BAND);
     if (i >= 0 && fields.ATTN !== undefined) $('attn-' + i).value = fields.ATTN;
   }
@@ -259,10 +262,6 @@ function parseStatus(text) {
 function handleStatusNotification(event) {
   const text = new TextDecoder().decode(event.target.value);
   parseStatus(text);
-}
-
-async function getStatus() {
-  if (await sendCommand('GET')) setMessage('Requesting current status...');
 }
 
 async function sendAttn(index) {
@@ -286,7 +285,6 @@ async function sendBypass() {
 
 $('connectButton').addEventListener('click', connectBLE);
 $('disconnectButton').addEventListener('click', disconnectBLE);
-$('getButton').addEventListener('click', getStatus);
 
 buildBandTable();
 setConnected(false);
