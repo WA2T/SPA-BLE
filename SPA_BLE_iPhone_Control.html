@@ -22,14 +22,14 @@
   .error { color: #b00000; }
   table { width: 100%; border-collapse: collapse; }
   th, td { border: 1px solid #000; padding: 5px 6px; text-align: left; }
-  th:first-child, td:first-child { text-align: center; width: 86px; }
+  th:first-child, td:first-child { text-align: center; width: 1%; white-space: nowrap; padding-left: 2px; padding-right: 2px; }
   th:last-child, td:last-child { text-align: center; }
-  td:nth-child(2), th:nth-child(2) { padding: 0 2px; }
+  td:nth-child(2), th:nth-child(2) { width: 1%; white-space: nowrap; padding: 0 2px; }
   .band-button { width: 100%; min-height: 40px; padding: 6px 5px; }
   input[type=number] { width: 68px; height: 42px; font-size: 18px; padding: 5px; border: 1px solid #000; border-radius: 4px; text-align: center; }
   .row-controls { display: flex; align-items: center; gap: 6px; }
   .stepper { display: flex; flex-direction: column; gap: 2px; }
-  .stepper button { min-height: 19px; height: 19px; width: 28px; padding: 0; font-size: 13px; line-height: 15px; }
+  .stepper button { min-height: 19px; height: 19px; width: 28px; padding: 0; font-size: 13px; line-height: 15px; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
   .bypass-row { margin: 7px 0 10px; }
   .bypass-row input { width: 22px; height: 22px; vertical-align: middle; }
   .delay-row { margin: 9px 0; }
@@ -174,6 +174,16 @@ function buildBandTable() {
 
     const input = $('attn-' + i);
     input.addEventListener('input', () => { attnDirty[i] = true; });
+
+    // iPhone numeric keyboards may dismiss with Done without generating
+    // a keydown Enter event. The change event commits the edited value.
+    input.addEventListener('change', async () => {
+      if (attnDirty[i]) {
+        await sendAttn(i);
+      }
+    });
+
+    // Keep Enter support for desktop and browsers that do generate Enter.
     input.addEventListener('keydown', async event => {
       if (event.key === 'Enter') {
         event.preventDefault();
@@ -374,8 +384,8 @@ async function sendAllAttn() {
     }
 
     for (let i = 0; i < BANDS.length; i++) {
-      if (!await sendCommand('ATTN=' + BANDS[i] + ',' + allValues[i])) {
-        setMessage('Submit All failed while setting ' + BANDS[i] + '.', true);
+      if (!await sendCommand('SAVEATTN=' + BANDS[i] + ',' + allValues[i])) {
+        setMessage('Submit All failed while saving ' + BANDS[i] + '.', true);
         return;
       }
       attnDirty[i] = false;
