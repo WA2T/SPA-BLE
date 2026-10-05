@@ -1,1602 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="utf-8">
-
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover">
-
-<meta name="apple-mobile-web-app-capable"
-      content="yes">
-
-<meta name="apple-mobile-web-app-status-bar-style"
-      content="default">
-
-<title>SPA BLE Control</title>
-
-
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Smart Power Attenuator</title>
 <style>
-
-  * {
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-    font-weight: bold;
-  }
-
-  body {
-    margin: 0;
-    padding: 14px;
-    font-size: 18px;
-    background: #fff;
-    color: #000;
-  }
-
-  h1 {
-    font-size: 26px;
-    margin: 4px 0 12px;
-  }
-
-  h2 {
-    font-size: 21px;
-    margin: 14px 0 9px;
-  }
-
-  .panel {
-    border: 1px solid #000;
-    border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 12px;
-  }
-
-  .status-grid {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 5px 12px;
-  }
-
-  .value {
-    text-align: right;
-  }
-
-  .connection {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-  }
-
-  button {
-    font-size: 18px;
-    min-height: 44px;
-    padding: 8px 13px;
-    border: 1px solid #000;
-    border-radius: 5px;
-    background: #f2f2f2;
-    color: #000;
-  }
-
-  button:disabled {
-    opacity: .45;
-  }
-
-  .connected {
-    font-size: 18px;
-    padding: 8px 0 2px;
-  }
-
-  .error {
-    color: #b00000;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th,
-  td {
-    border: 1px solid #000;
-    padding: 5px 6px;
-    text-align: left;
-  }
-
-  th:last-child,
-  td:last-child {
-    text-align: center;
-    width: 72px;
-  }
-
-  input[type=number] {
-    width: 68px;
-    height: 42px;
-    font-size: 18px;
-    padding: 5px;
-    border: 1px solid #000;
-    border-radius: 4px;
-    text-align: center;
-  }
-
-  .row-controls {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .stepper {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .stepper button {
-    min-height: 19px;
-    height: 19px;
-    width: 28px;
-    padding: 0;
-    font-size: 13px;
-    line-height: 15px;
-  }
-
-  .delay-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin: 9px 0;
-  }
-
-  .delay-row label {
-    flex: 1;
-  }
-
-  .bypass-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .bypass-row input {
-    width: 24px;
-    height: 24px;
-  }
-
-  .footer {
-    font-size: 15px;
-    font-weight: normal;
-    margin-top: 10px;
-    line-height: 1.35;
-  }
-
+  * { box-sizing: border-box; font-family: Arial, sans-serif; font-weight: bold; }
+  body { margin: 0; padding: 14px; font-size: 18px; background: #fff; color: #000; }
+  h1 { font-size: 26px; margin: 4px 0 12px; }
+  h2 { font-size: 21px; margin: 14px 0 9px; }
+  .current-status { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; margin-bottom: 10px; }
+  .status-label { text-align: left; }
+  .status-value { text-align: right; }
+  .ble-state { margin-bottom: 8px; }
+  .connection { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  button { font-size: 18px; min-height: 44px; padding: 8px 13px; border: 1px solid #000; border-radius: 5px; background: #f2f2f2; color: #000; }
+  button:disabled { opacity: .45; }
+  .message { font-size: 17px; padding: 7px 0 4px; line-height: 1.3; }
+  .error { color: #b00000; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #000; padding: 5px 6px; text-align: left; }
+  th:first-child, td:first-child { text-align: center; width: 86px; }
+  th:last-child, td:last-child { text-align: center; }
+  td:nth-child(2), th:nth-child(2) { padding: 0 2px; }
+  .band-button { width: 100%; min-height: 40px; padding: 6px 5px; }
+  input[type=number] { width: 68px; height: 42px; font-size: 18px; padding: 5px; border: 1px solid #000; border-radius: 4px; text-align: center; }
+  .row-controls { display: flex; align-items: center; gap: 6px; }
+  .stepper { display: flex; flex-direction: column; gap: 2px; }
+  .stepper button { min-height: 19px; height: 19px; width: 28px; padding: 0; font-size: 13px; line-height: 15px; }
+  .bypass-row { margin: 7px 0 10px; }
+  .bypass-row input { width: 22px; height: 22px; vertical-align: middle; }
+  .delay-row { margin: 9px 0; }
+  .delay-row label { display: inline-block; min-width: 118px; }
+  .save-row { margin-top: 10px; }
+  .footer { font-size: 15px; font-weight: normal; margin-top: 10px; line-height: 1.35; }
   @media (max-width: 380px) {
-
-    body {
-      padding: 10px;
-    }
-
-    h1 {
-      font-size: 24px;
-    }
-
-    h2 {
-      font-size: 20px;
-    }
-
-    button,
-    input[type=number] {
-      font-size: 17px;
-    }
-
-    th,
-    td {
-      padding: 4px;
-    }
-
+    body { padding: 10px; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    button, input[type=number] { font-size: 17px; }
+    th, td { padding: 4px; }
   }
-
 </style>
-
 </head>
-
-
 <body>
-
-
 <h1>Smart Power Attenuator</h1>
 
-
-<!-- =========================================================
-     STATUS PANEL
-     ========================================================= -->
-
-<div class="panel">
-
-  <div class="status-grid">
-
-    <div>BLE:</div>
-
-    <div class="value"
-         id="bleState">
-      Disconnected
-    </div>
-
-
-    <div>Current Band:</div>
-
-    <div class="value"
-         id="currentBand">
-      Not detected
-    </div>
-
-
-    <div>Attenuation:</div>
-
-    <div class="value"
-         id="currentAttn">
-      15 dB
-    </div>
-
-
-    <div>Bypass:</div>
-
-    <div class="value"
-         id="currentBypass">
-      OFF
-    </div>
-
-
-    <div>PTT OUT 1:</div>
-
-    <div class="value"
-         id="currentDelay1">
-      0 ms
-    </div>
-
-
-    <div>PTT OUT 2:</div>
-
-    <div class="value"
-         id="currentDelay2">
-      0 ms
-    </div>
-
-  </div>
-
-
-  <div class="connection">
-
-    <button id="connectButton">
-      Connect BLE
-    </button>
-
-    <button id="disconnectButton"
-            disabled>
-      Disconnect
-    </button>
-
-  </div>
-
-
-  <!--
-       Message area.
-
-       Automatic status polling does NOT overwrite this.
-  -->
-
-  <div class="connected"
-       id="message">
-    BLE not connected
-  </div>
-
+<div class="ble-state">
+  BLE: <span id="bleState">Disconnected</span>
 </div>
 
-
-
-<!-- =========================================================
-     ATTENUATION TABLE
-     ========================================================= -->
-
-<div class="panel">
-
-  <h2>TX Attenuation by Band</h2>
-
-
-  <table>
-
-    <thead>
-
-      <tr>
-        <th>Band</th>
-        <th>Attn (dB)</th>
-        <th>Set</th>
-      </tr>
-
-    </thead>
-
-
-    <tbody id="bandTable"></tbody>
-
-  </table>
-
+<div class="current-status">
+  <span class="status-label">Current Band:</span><span id="currentBand" class="status-value">Reading...</span>
+  <span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">Reading...</span>
 </div>
 
-
-
-<!-- =========================================================
-     PTT DELAY SETTINGS
-     ========================================================= -->
-
-<div class="panel">
-
-  <h2>PTT Delay Settings</h2>
-
-
-  <div class="delay-row">
-
-    <label for="delay1">
-      PTT OUT 1:
-    </label>
-
-
-    <input id="delay1"
-           type="number"
-           min="0"
-           max="250"
-           value="0"
-           inputmode="numeric">
-
-
-    <button onclick="sendDelay(1)">
-      Set
-    </button>
-
-  </div>
-
-
-  <div class="delay-row">
-
-    <label for="delay2">
-      PTT OUT 2:
-    </label>
-
-
-    <input id="delay2"
-           type="number"
-           min="0"
-           max="250"
-           value="0"
-           inputmode="numeric">
-
-
-    <button onclick="sendDelay(2)">
-      Set
-    </button>
-
-  </div>
-
+<div class="connection">
+  <button id="connectButton">Connect BLE</button>
+  <button id="disconnectButton" disabled>Disconnect</button>
 </div>
 
+<div class="message" id="message">BLE not connected</div>
 
+<h2>TX Attenuation by Band (0 - 15 dB)</h2>
 
-<!-- =========================================================
-     BYPASS
-     ========================================================= -->
-
-<div class="panel">
-
-  <div class="bypass-row">
-
-    <input id="bypass"
-           type="checkbox"
-           onchange="sendBypass()">
-
-
-    <label for="bypass">
-      Bypass SPA Attn (TX) Path
-    </label>
-
-  </div>
-
+<div class="bypass-row">
+  <input id="bypass" type="checkbox">
+  <label for="bypass">Bypass SPA Attn (TX) Path</label>
 </div>
 
+<table>
+  <thead><tr><th>Band</th><th>Attn (dB)</th></tr></thead>
+  <tbody id="bandTable"></tbody>
+</table>
 
+<div style="margin-top:10px;">
+  <button type="button" id="submitAllButton" disabled>Submit All</button>
+</div>
+
+<h2>PTT Delay Settings (0 - 250 mS)</h2>
+<div class="delay-row">
+  <label for="delay1">PTT OUT 1:</label>
+  <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
+    <input id="delay1" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
+    <span class="stepper">
+      <button type="button" onclick="stepDelay(1,1)">▲</button>
+      <button type="button" onclick="stepDelay(1,-1)">▼</button>
+    </span>
+  </span>
+</div>
+<div class="delay-row">
+  <label for="delay2">PTT OUT 2:</label>
+  <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
+    <input id="delay2" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
+    <span class="stepper">
+      <button type="button" onclick="stepDelay(2,1)">▲</button>
+      <button type="button" onclick="stepDelay(2,-1)">▼</button>
+    </span>
+  </span>
+</div>
+<div class="save-row">
+  <button type="button" id="saveDelaysButton" disabled>Save Delays</button>
+</div>
 
 <div class="footer">
-
-  Use a Web-Bluetooth-capable iPhone browser/app.
-  BLE status updates automatically every second while connected.
-
+  BLE status is refreshed automatically every second while connected.
 </div>
 
-
-
 <script>
-
-
-/*
- * ============================================================
- * BLE UUIDs
- * ============================================================
- */
-
-const SERVICE_UUID =
-  '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-
-const COMMAND_UUID =
-  '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-
-const STATUS_UUID =
-  '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
-
-
-
-/*
- * ============================================================
- * Band list
- * ============================================================
- */
-
-const BANDS = [
-
-  '160m',
-  '80m',
-  '60m',
-  '40m',
-  '30m',
-  '20m',
-  '17m',
-  '15m',
-  '12m',
-  '10m',
-  '6m'
-
-];
-
-
-
-/*
- * ============================================================
- * BLE state
- * ============================================================
- */
+const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+const COMMAND_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+const STATUS_UUID  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+const BANDS = ['160m','80m','60m','40m','30m','20m','17m','15m','12m','10m','6m'];
 
 let device = null;
-
 let server = null;
-
 let commandCharacteristic = null;
-
 let statusCharacteristic = null;
-
 let statusPollTimer = null;
-
-
-/*
- * Pending command message.
- *
- * This allows the page to show:
- *
- * Setting 20m to 5 dB...
- *
- * and then, when the next status packet arrives:
- *
- * 20m set to 5 dB
- *
- * without the normal 1-second status polling changing
- * the message.
- */
-
 let pendingMessage = null;
+const attnDirty = new Array(BANDS.length).fill(false);
+const delayDirty = [false, false];
 
-
-
-/*
- * ============================================================
- * Convenience function
- * ============================================================
- */
-
-const $ = id =>
-  document.getElementById(id);
-
-
-
-/*
- * ============================================================
- * Display a message
- * ============================================================
- */
+const $ = id => document.getElementById(id);
 
 function setMessage(text, isError = false) {
-
-  $('message').textContent =
-    text;
-
-  $('message').className =
-    isError
-      ? 'connected error'
-      : 'connected';
+  $('message').textContent = text;
+  $('message').className = isError ? 'connected error' : 'connected';
 }
-
-
-
-/*
- * ============================================================
- * Complete a pending command message
- *
- * Called when a new status packet arrives.
- * ============================================================
- */
 
 function clearPendingMessage() {
-
-  if (pendingMessage === null) {
-    return;
-  }
-
-
-  const message =
-    pendingMessage;
-
-
-  pendingMessage =
-    null;
-
-
+  if (pendingMessage === null) return;
+  const message = pendingMessage;
+  pendingMessage = null;
   if (message.type === 'attn') {
-
-    setMessage(
-      message.band +
-      ' set to ' +
-      message.value +
-      ' dB'
-    );
-
+    setMessage(message.band + ' set to ' + message.value + ' dB');
+  } else if (message.type === 'delay') {
+    setMessage('PTT OUT ' + message.which + ' delay set to ' + message.value + ' ms');
+  } else if (message.type === 'bypass') {
+    setMessage(message.value === '1' ? 'Bypass ON' : 'Bypass OFF');
+  } else if (message.type === 'submitAll') {
+    setMessage('All attenuation values submitted');
+  } else if (message.type === 'delays') {
+    setMessage('PTT delays saved');
   }
-
-
-  else if (message.type === 'delay') {
-
-    setMessage(
-      'PTT OUT ' +
-      message.which +
-      ' delay set to ' +
-      message.value +
-      ' ms'
-    );
-
-  }
-
-
-  else if (message.type === 'bypass') {
-
-    setMessage(
-      message.value === '1'
-        ? 'Bypass ON'
-        : 'Bypass OFF'
-    );
-
-  }
-
 }
-
-
-
-/*
- * ============================================================
- * Connection display
- * ============================================================
- */
 
 function setConnected(connected) {
-
-  $('connectButton').disabled =
-    connected;
-
-  $('disconnectButton').disabled =
-    !connected;
-
-  $('bleState').textContent =
-    connected
-      ? 'Connected'
-      : 'Disconnected';
-
+  $('connectButton').disabled = connected;
+  $('disconnectButton').disabled = !connected;
+  $('submitAllButton').disabled = !connected;
+  $('saveDelaysButton').disabled = !connected;
+  $('bleState').textContent = connected ? 'Connected' : 'Disconnected';
 }
-
-
-
-/*
- * ============================================================
- * Build attenuation table
- * ============================================================
- */
 
 function buildBandTable() {
-
-  const tbody =
-    $('bandTable');
-
-
+  const tbody = $('bandTable');
   BANDS.forEach((band, i) => {
-
-    const tr =
-      document.createElement('tr');
-
-
+    const tr = document.createElement('tr');
     tr.innerHTML =
-
-      '<td>' +
-      band +
-      '</td>' +
-
-      '<td>' +
-
-      '<div class="row-controls">' +
-
-      '<input ' +
-      'id="attn-' +
-      i +
-      '" ' +
-      'type="number" ' +
-      'min="0" ' +
-      'max="15" ' +
-      'value="15" ' +
-      'inputmode="numeric">' +
-
+      '<td><button type="button" class="band-button" id="band-' + i +
+      '" onclick="sendAttn(' + i + ')">' + band + '</button></td>' +
+      '<td><div class="row-controls">' +
+      '<input id="attn-' + i + '" type="number" min="0" max="15" value="15" ' +
+      'inputmode="numeric" enterkeyhint="done">' +
       '<div class="stepper">' +
-
-      '<button ' +
-      'type="button" ' +
-      'onclick="stepAttn(' +
-      i +
-      ',1)">' +
-      '▲' +
-      '</button>' +
-
-      '<button ' +
-      'type="button" ' +
-      'onclick="stepAttn(' +
-      i +
-      ',-1)">' +
-      '▼' +
-      '</button>' +
-
-      '</div>' +
-
-      '</div>' +
-
-      '</td>' +
-
-      '<td>' +
-
-      '<button ' +
-      'type="button" ' +
-      'onclick="sendAttn(' +
-      i +
-      ')">' +
-      'Set' +
-      '</button>' +
-
-      '</td>';
-
-
+      '<button type="button" onclick="stepAttn(' + i + ',1)">▲</button>' +
+      '<button type="button" onclick="stepAttn(' + i + ',-1)">▼</button>' +
+      '</div></div></td>';
     tbody.appendChild(tr);
 
+    const input = $('attn-' + i);
+    input.addEventListener('input', () => { attnDirty[i] = true; });
+    input.addEventListener('keydown', async event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        await sendAttn(i);
+        input.blur();
+      }
+    });
   });
-
 }
-
-
-
-/*
- * ============================================================
- * Attenuation up/down buttons
- * ============================================================
- */
 
 function stepAttn(index, amount) {
-
-  const input =
-    $('attn-' + index);
-
-
-  let value =
-    Number(input.value);
-
-
-  if (!Number.isFinite(value)) {
-
-    value =
-      15;
-  }
-
-
-  value +=
-    amount;
-
-
-  value =
-    Math.max(
-      0,
-      Math.min(
-        15,
-        value
-      )
-    );
-
-
-  input.value =
-    value;
-
+  const input = $('attn-' + index);
+  let v = Number(input.value);
+  if (!Number.isFinite(v)) v = 15;
+  input.value = Math.max(0, Math.min(15, v + amount));
+  input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-
-
-/*
- * ============================================================
- * Validate numeric value
- * ============================================================
- */
+function stepDelay(which, amount) {
+  const input = $('delay' + which);
+  let v = Number(input.value);
+  if (!Number.isFinite(v)) v = 0;
+  input.value = Math.max(0, Math.min(250, v + amount));
+  delayDirty[which - 1] = true;
+}
 
 function validNumber(id, min, max) {
-
-  const input =
-    $(id);
-
-
-  const value =
-    Number(input.value);
-
-
-  if (
-    !Number.isInteger(value) ||
-    value < min ||
-    value > max
-  ) {
-
+  const input = $(id);
+  const value = Number(input.value);
+  if (!Number.isInteger(value) || value < min || value > max) {
     input.focus();
-
-
-    setMessage(
-      'Value must be between ' +
-      min +
-      ' and ' +
-      max +
-      '.',
-      true
-    );
-
-
+    setMessage('Please enter a value from ' + min + ' to ' + max + '.', true);
     return null;
   }
-
-
   return value;
-
 }
-
-
-
-/*
- * ============================================================
- * Connect BLE
- * ============================================================
- */
 
 async function connectBLE() {
-
   if (!navigator.bluetooth) {
-
-    setMessage(
-      'Web Bluetooth is not available in this browser.',
-      true
-    );
-
+    setMessage('Web Bluetooth is not available in this browser.', true);
     return;
   }
 
-
   try {
+    setMessage('Selecting SPA-BLE...');
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [SERVICE_UUID] }],
+      optionalServices: [SERVICE_UUID]
+    });
 
-    setMessage(
-      'Selecting SPA-BLE...'
-    );
+    device.addEventListener('gattserverdisconnected', disconnected);
+    server = await device.gatt.connect();
 
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    commandCharacteristic = await service.getCharacteristic(COMMAND_UUID);
+    statusCharacteristic = await service.getCharacteristic(STATUS_UUID);
 
-    device =
-      await navigator.bluetooth.requestDevice({
-
-        filters: [
-          {
-            services: [
-              SERVICE_UUID
-            ]
-          }
-        ],
-
-        optionalServices: [
-          SERVICE_UUID
-        ]
-
-      });
-
-
-    device.addEventListener(
-      'gattserverdisconnected',
-      disconnected
-    );
-
-
-    server =
-      await device.gatt.connect();
-
-
-    const service =
-      await server.getPrimaryService(
-        SERVICE_UUID
-      );
-
-
-    commandCharacteristic =
-      await service.getCharacteristic(
-        COMMAND_UUID
-      );
-
-
-    statusCharacteristic =
-      await service.getCharacteristic(
-        STATUS_UUID
-      );
-
-
-    await statusCharacteristic
-      .startNotifications();
-
-
-    statusCharacteristic.addEventListener(
-      'characteristicvaluechanged',
-      handleStatusNotification
-    );
-
+    await statusCharacteristic.startNotifications();
+    statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
 
     setConnected(true);
-
-
-    setMessage(
-      'Connected to ' +
-      (device.name || 'SPA-BLE')
-    );
-
-
-    /*
-     * Start automatic status polling.
-     */
-
+    setMessage('Connected to SPA-BLE.');
     startStatusPolling();
-
-  }
-
-
-  catch (err) {
-
+  } catch (err) {
     setConnected(false);
-
-
-    setMessage(
-      'BLE connection failed: ' +
-      err.message,
-      true
-    );
-
+    setMessage('BLE connection failed: ' + err.message, true);
   }
-
 }
-
-
-
-/*
- * ============================================================
- * BLE disconnected
- * ============================================================
- */
 
 function disconnected() {
-
   stopStatusPolling();
-
-
-  pendingMessage =
-    null;
-
-
+  pendingMessage = null;
   setConnected(false);
-
-
-  commandCharacteristic =
-    null;
-
-
-  statusCharacteristic =
-    null;
-
-
-  server =
-    null;
-
-
-  setMessage(
-    'BLE disconnected'
-  );
-
+  commandCharacteristic = null;
+  statusCharacteristic = null;
+  server = null;
+  setMessage('BLE disconnected.');
 }
-
-
-
-/*
- * ============================================================
- * Disconnect BLE
- * ============================================================
- */
 
 async function disconnectBLE() {
-
   try {
-
-    if (
-      device &&
-      device.gatt &&
-      device.gatt.connected
-    ) {
-
-      device.gatt.disconnect();
-
-    }
-
-  }
-
-  catch (err) {
-    // Nothing required.
-  }
-
-
+    if (device && device.gatt && device.gatt.connected) device.gatt.disconnect();
+  } catch (err) {}
   disconnected();
-
 }
-
-
-
-/*
- * ============================================================
- * Start automatic status polling
- * ============================================================
- */
 
 function startStatusPolling() {
-
   stopStatusPolling();
-
-
-  /*
-   * Request immediately.
-   */
-
   requestStatus();
-
-
-  /*
-   * Then once every second.
-   */
-
-  statusPollTimer =
-    setInterval(
-      requestStatus,
-      1000
-    );
-
+  statusPollTimer = setInterval(requestStatus, 1000);
 }
-
-
-
-/*
- * ============================================================
- * Stop automatic status polling
- * ============================================================
- */
 
 function stopStatusPolling() {
-
-  if (
-    statusPollTimer !== null
-  ) {
-
-    clearInterval(
-      statusPollTimer
-    );
-
-
-    statusPollTimer =
-      null;
+  if (statusPollTimer !== null) {
+    clearInterval(statusPollTimer);
+    statusPollTimer = null;
   }
-
 }
-
-
-
-/*
- * ============================================================
- * Request current SPA status
- * ============================================================
- */
 
 async function requestStatus() {
-
-  if (
-    commandCharacteristic
-  ) {
-
-    await sendCommand(
-      'GET'
-    );
-
+  if (commandCharacteristic) {
+    await sendCommand('GET');
   }
-
 }
-
-
-
-/*
- * ============================================================
- * Send BLE command
- * ============================================================
- */
 
 async function sendCommand(command) {
-
-  if (
-    !commandCharacteristic
-  ) {
-
-    setMessage(
-      'Connect to SPA-BLE first.',
-      true
-    );
-
+  if (!commandCharacteristic) {
+    setMessage('Connect to SPA-BLE first.', true);
     return false;
   }
-
-
   try {
-
-    const data =
-      new TextEncoder().encode(
-        command
-      );
-
-
-    if (
-      commandCharacteristic
-        .writeValueWithoutResponse
-    ) {
-
-      await commandCharacteristic
-        .writeValueWithoutResponse(
-          data
-        );
-
+    const data = new TextEncoder().encode(command);
+    if (commandCharacteristic.writeValueWithoutResponse) {
+      await commandCharacteristic.writeValueWithoutResponse(data);
+    } else {
+      await commandCharacteristic.writeValue(data);
     }
-
-    else {
-
-      await commandCharacteristic
-        .writeValue(
-          data
-        );
-
-    }
-
-
     return true;
-
-  }
-
-
-  catch (err) {
-
-    setMessage(
-      'BLE write failed: ' +
-      err.message,
-      true
-    );
-
-
+  } catch (err) {
+    setMessage('BLE write failed: ' + err.message, true);
     return false;
   }
-
 }
-
-
-
-/*
- * ============================================================
- * Parse SPA status
- * ============================================================
- */
 
 function parseStatus(text) {
-
   const fields = {};
-
-
-  /*
-   * Split status packet into fields.
-   */
-
   text.split(';').forEach(part => {
-
-    const eq =
-      part.indexOf('=');
-
-
-    if (eq > 0) {
-
-      fields[
-        part.substring(
-          0,
-          eq
-        )
-      ] =
-        part.substring(
-          eq + 1
-        );
-
-    }
-
+    const eq = part.indexOf('=');
+    if (eq > 0) fields[part.substring(0, eq)] = part.substring(eq + 1);
   });
 
+  if (fields.BAND !== undefined) $('currentBand').textContent = fields.BAND;
+  if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
 
-
-  /*
-   * Current band.
-   */
-
-  if (
-    fields.BAND !== undefined
-  ) {
-
-    $('currentBand').textContent =
-      fields.BAND;
-
+  if (fields.BYPASS !== undefined) {
+    const on = fields.BYPASS === '1';
+    $('bypass').checked = on;
   }
 
-
-
-  /*
-   * Current attenuation.
-   */
-
-  if (
-    fields.ATTN !== undefined
-  ) {
-
-    $('currentAttn').textContent =
-      fields.ATTN +
-      ' dB';
-
+  if (fields.DELAY1 !== undefined && !delayDirty[0]) {
+    $('delay1').value = fields.DELAY1;
+  }
+  if (fields.DELAY2 !== undefined && !delayDirty[1]) {
+    $('delay2').value = fields.DELAY2;
   }
 
-
-
-  /*
-   * Bypass.
-   */
-
-  if (
-    fields.BYPASS !== undefined
-  ) {
-
-    const on =
-      fields.BYPASS === '1';
-
-
-    $('currentBypass').textContent =
-      on
-        ? 'ON'
-        : 'OFF';
-
-
-    $('bypass').checked =
-      on;
-
+  if (fields.ATTNS !== undefined) {
+    fields.ATTNS.split(',').forEach(item => {
+      const parts = item.split(':');
+      if (parts.length !== 2) return;
+      const i = BANDS.indexOf(parts[0]);
+      if (i >= 0 && !attnDirty[i]) $('attn-' + i).value = parts[1];
+    });
+  } else if (fields.BAND !== undefined && fields.ATTN !== undefined) {
+    const i = BANDS.indexOf(fields.BAND);
+    if (i >= 0 && !attnDirty[i]) $('attn-' + i).value = fields.ATTN;
   }
-
-
-
-  /*
-   * PTT OUT 1 delay.
-   */
-
-  if (
-    fields.DELAY1 !== undefined
-  ) {
-
-    $('currentDelay1').textContent =
-      fields.DELAY1 +
-      ' ms';
-
-
-    $('delay1').value =
-      fields.DELAY1;
-
-  }
-
-
-
-  /*
-   * PTT OUT 2 delay.
-   */
-
-  if (
-    fields.DELAY2 !== undefined
-  ) {
-
-    $('currentDelay2').textContent =
-      fields.DELAY2 +
-      ' ms';
-
-
-    $('delay2').value =
-      fields.DELAY2;
-
-  }
-
-
-
-  /*
-   * ==========================================================
-   * Synchronize ALL attenuation values.
-   * ==========================================================
-   *
-   * Example:
-   *
-   * ATTNS=160m:15,80m:12,60m:15,40m:10,
-   * 30m:15,20m:5,17m:15,15m:8,
-   * 12m:15,10m:4,6m:15
-   */
-
-  if (
-    fields.ATTNS !== undefined
-  ) {
-
-    fields.ATTNS
-      .split(',')
-      .forEach(function(item) {
-
-        const colon =
-          item.indexOf(':');
-
-
-        if (
-          colon <= 0
-        ) {
-
-          return;
-        }
-
-
-        const band =
-          item.substring(
-            0,
-            colon
-          );
-
-
-        const value =
-          item.substring(
-            colon + 1
-          );
-
-
-        const index =
-          BANDS.indexOf(
-            band
-          );
-
-
-        if (
-          index >= 0
-        ) {
-
-          const input =
-            $('attn-' + index);
-
-
-          if (input) {
-
-            input.value =
-              value;
-
-          }
-
-        }
-
-      });
-
-  }
-
-
-  else if (
-    fields.BAND !== undefined &&
-    fields.ATTN !== undefined
-  ) {
-
-    /*
-     * Backward compatibility for firmware that only
-     * reports the active band.
-     */
-
-    const index =
-      BANDS.indexOf(
-        fields.BAND
-      );
-
-
-    if (
-      index >= 0
-    ) {
-
-      $('attn-' + index).value =
-        fields.ATTN;
-
-    }
-
-  }
-
-
-
-  /*
-   * A status packet has arrived.
-   *
-   * If this packet is the response to a command,
-   * complete the command message.
-   *
-   * Normal status polling does not change the message.
-   */
 
   clearPendingMessage();
-
 }
-
-
-
-/*
- * ============================================================
- * BLE notification handler
- * ============================================================
- */
 
 function handleStatusNotification(event) {
-
-  const text =
-    new TextDecoder().decode(
-      event.target.value
-    );
-
-
+  const text = new TextDecoder().decode(event.target.value);
   parseStatus(text);
-
 }
-
-
-
-/*
- * ============================================================
- * Set attenuation
- * ============================================================
- */
 
 async function sendAttn(index) {
+  const value = validNumber('attn-' + index, 0, 15);
+  if (value === null) return false;
+  const command = 'ATTN=' + BANDS[index] + ',' + value;
+  if (await sendCommand(command)) {
+    attnDirty[index] = false;
+    pendingMessage = { type: 'attn', band: BANDS[index], value: value };
+    setMessage('Setting ' + BANDS[index] + ' to ' + value + ' dB...');
+    return true;
+  }
+  return false;
+}
 
-  const value =
-    validNumber(
-      'attn-' + index,
-      0,
-      15
-    );
-
-
-  if (
-    value === null
-  ) {
-
+async function sendAllAttn() {
+  if (!commandCharacteristic) {
+    setMessage('Connect to SPA-BLE first.', true);
     return;
   }
 
+  const button = $('submitAllButton');
+  button.disabled = true;
 
-  const command =
-    'ATTN=' +
-    BANDS[index] +
-    ',' +
-    value;
+  try {
+    const allValues = [];
+    for (let i = 0; i < BANDS.length; i++) {
+      const value = validNumber('attn-' + i, 0, 15);
+      if (value === null) {
+        setMessage('Submit All cancelled: invalid value for ' + BANDS[i] + '.', true);
+        return;
+      }
+      allValues.push(value);
+    }
 
+    for (let i = 0; i < BANDS.length; i++) {
+      if (!await sendCommand('ATTN=' + BANDS[i] + ',' + allValues[i])) {
+        setMessage('Submit All failed while setting ' + BANDS[i] + '.', true);
+        return;
+      }
+      attnDirty[i] = false;
+      await new Promise(resolve => setTimeout(resolve, 75));
+    }
 
-  if (
-    await sendCommand(
-      command
-    )
-  ) {
-
-    pendingMessage = {
-
-      type: 'attn',
-
-      band:
-        BANDS[index],
-
-      value:
-        value
-
-    };
-
-
-    setMessage(
-      'Setting ' +
-      BANDS[index] +
-      ' to ' +
-      value +
-      ' dB...'
-    );
-
+    pendingMessage = { type: 'submitAll' };
+    setMessage('Submitting all attenuation values...');
+    await sendCommand('GET');
+  } finally {
+    button.disabled = !commandCharacteristic;
   }
-
 }
 
-
-
-/*
- * ============================================================
- * Set PTT delay
- * ============================================================
- */
-
-async function sendDelay(which) {
-
-  const id =
-    which === 1
-      ? 'delay1'
-      : 'delay2';
-
-
-  const value =
-    validNumber(
-      id,
-      0,
-      250
-    );
-
-
-  if (
-    value === null
-  ) {
-
+async function saveDelays() {
+  if (!commandCharacteristic) {
+    setMessage('Connect to SPA-BLE first.', true);
     return;
   }
 
+  const d1 = validNumber('delay1', 0, 250);
+  if (d1 === null) return;
 
-  const command =
-    'DELAY' +
-    which +
-    '=' +
-    value;
+  const d2 = validNumber('delay2', 0, 250);
+  if (d2 === null) return;
 
+  const button = $('saveDelaysButton');
+  button.disabled = true;
 
-  if (
-    await sendCommand(
-      command
-    )
-  ) {
+  try {
+    if (!await sendCommand('DELAY1=' + d1)) return;
+    await new Promise(resolve => setTimeout(resolve, 75));
 
-    pendingMessage = {
+    if (!await sendCommand('DELAY2=' + d2)) return;
 
-      type: 'delay',
+    delayDirty[0] = false;
+    delayDirty[1] = false;
 
-      which:
-        which,
-
-      value:
-        value
-
-    };
-
-
-    setMessage(
-      'Setting PTT OUT ' +
-      which +
-      ' delay to ' +
-      value +
-      ' ms...'
-    );
-
+    pendingMessage = { type: 'delays' };
+    setMessage('Saving PTT delays...');
+    await new Promise(resolve => setTimeout(resolve, 75));
+    await sendCommand('GET');
+  } finally {
+    button.disabled = !commandCharacteristic;
   }
-
 }
-
-
-
-/*
- * ============================================================
- * Set bypass
- * ============================================================
- */
 
 async function sendBypass() {
-
-  const value =
-    $('bypass').checked
-      ? '1'
-      : '0';
-
-
-  if (
-    await sendCommand(
-      'BYPASS=' +
-      value
-    )
-  ) {
-
-    pendingMessage = {
-
-      type: 'bypass',
-
-      value:
-        value
-
-    };
-
-
-    setMessage(
-      value === '1'
-        ? 'Bypass ON...'
-        : 'Bypass OFF...'
-    );
-
+  if (!commandCharacteristic) { setMessage('Connect to SPA-BLE first.', true); return; }
+  const value = $('bypass').checked ? '1' : '0';
+  if (await sendCommand('BYPASS=' + value)) {
+    pendingMessage = { type: 'bypass', value: value };
+    setMessage(value === '1' ? 'Bypass ON...' : 'Bypass OFF...');
   }
-
 }
 
+$('connectButton').addEventListener('click', connectBLE);
+$('disconnectButton').addEventListener('click', disconnectBLE);
+$('submitAllButton').addEventListener('click', sendAllAttn);
+$('saveDelaysButton').addEventListener('click', saveDelays);
+$('bypass').addEventListener('change', sendBypass);
 
+$('delay1').addEventListener('input', () => { delayDirty[0] = true; });
+$('delay2').addEventListener('input', () => { delayDirty[1] = true; });
 
-/*
- * ============================================================
- * Button event handlers
- * ============================================================
- */
-
-$('connectButton').addEventListener(
-  'click',
-  connectBLE
-);
-
-
-$('disconnectButton').addEventListener(
-  'click',
-  disconnectBLE
-);
-
-
-
-/*
- * ============================================================
- * Initialize page
- * ============================================================
- */
+$('delay1').addEventListener('keydown', async event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    await saveDelays();
+    $('delay1').blur();
+  }
+});
+$('delay2').addEventListener('keydown', async event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    await saveDelays();
+    $('delay2').blur();
+  }
+});
 
 buildBandTable();
-
 setConnected(false);
-
 </script>
-
 </body>
-
 </html>
