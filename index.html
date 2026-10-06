@@ -456,6 +456,62 @@
     }
   }
 
+
+  /* Vertical-balance pass only. Horizontal geometry intentionally unchanged. */
+  @media (max-width:480px) {
+    /* More separation after the main page title. */
+    h1 {
+      margin-bottom:12px !important;
+    }
+
+    /* More space below section headings, especially PTT Delay Settings. */
+    h2 {
+      margin-top:11px !important;
+      margin-bottom:10px !important;
+    }
+
+    /* The attenuation heading needs normal spacing; preserve comfortable rows. */
+    h2 + .bypass-row {
+      margin-top:0 !important;
+    }
+
+    /* Raise Submit All within the right column so its bottom aligns with
+       the bottom of the final band row in the left column. */
+    .attenuation-grid > div:last-child {
+      display:flex;
+      flex-direction:column;
+    }
+
+    .attenuation-grid > div:last-child .submit-cell {
+      margin-top:0 !important;
+      padding-top:0 !important;
+      transform:translateY(-6px);
+    }
+
+    /* Use some of the available bottom room around the delay controls,
+       without changing any horizontal dimensions. */
+    .delay-save-layout {
+      margin-top:2px;
+      margin-bottom:4px;
+    }
+
+    .delay-fields {
+      row-gap:8px !important;
+    }
+
+    .footer {
+      margin-top:9px !important;
+      margin-bottom:3px;
+    }
+  }
+
+  @media (max-width:480px) and (max-height:750px) {
+    h1 { margin-bottom:9px !important; }
+    h2 { margin-top:9px !important; margin-bottom:8px !important; }
+    .delay-fields { row-gap:7px !important; }
+    .footer { margin-top:7px !important; }
+  }
+
 </style>
 </head>
 <body>
