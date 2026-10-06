@@ -54,7 +54,7 @@
 <h1>Smart Power Attenuator</h1>
 
 <div class="ble-state">
-  BLE: <span id="bleState">Disconnected</span>
+  BLE: <span id="bleState">Disconnected</span><span id="bleDetail"></span>
 </div>
 
 <div class="current-status">
@@ -67,7 +67,6 @@
   <button id="disconnectButton" disabled>Disconnect</button>
 </div>
 
-<div class="message" id="message">BLE not connected</div>
 
 <h2>TX Attenuation by Band (0 - 15 dB)</h2>
 
@@ -129,17 +128,15 @@ let statusPollTimer = null;
 let pendingMessage = null;
 let messageClearTimer = null;
 let pendingTimeoutTimer = null;
-let currentBleStateText = 'Disconnected';
 const attnDirty = new Array(BANDS.length).fill(false);
 const delayDirty = [false, false];
 
 const $ = id => document.getElementById(id);
 
-function renderBleStatus(detail = '', isError = false) {
-  const el = $('message');
-  el.innerHTML = '<strong>BLE:</strong> ' + currentBleStateText +
-    (detail ? ' - ' + detail : '');
-  el.className = isError ? 'connected error' : 'connected';
+function renderBleDetail(text = '', isError = false) {
+  const detail = $('bleDetail');
+  detail.textContent = text ? ' - ' + text : '';
+  detail.className = isError ? 'error' : '';
 }
 
 function setMessage(text, isError = false, clearAfterMs = 0) {
@@ -148,11 +145,11 @@ function setMessage(text, isError = false, clearAfterMs = 0) {
     messageClearTimer = null;
   }
 
-  renderBleStatus(text, isError);
+  renderBleDetail(text, isError);
 
   if (clearAfterMs > 0) {
     messageClearTimer = setTimeout(function() {
-      renderBleStatus();
+      renderBleDetail();
       messageClearTimer = null;
     }, clearAfterMs);
   }
@@ -200,6 +197,7 @@ function setConnected(connected) {
   $('submitAllButton').disabled = !connected;
   $('saveDelaysButton').disabled = !connected;
   $('bleState').textContent = connected ? 'Connected' : 'Disconnected';
+  if (!connected) renderBleDetail();
   if (!connected) {
     $('currentBand').textContent = 'Connect to view';
     $('currentAttn').textContent = 'Connect to view';
@@ -295,7 +293,7 @@ async function connectBLE() {
     statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
 
     setConnected(true);
-    setMessage('Connected to SPA-BLE.');
+    renderBleDetail();
     startStatusPolling();
   } catch (err) {
     setConnected(false);
@@ -310,7 +308,7 @@ function disconnected() {
   commandCharacteristic = null;
   statusCharacteristic = null;
   server = null;
-  setMessage('BLE disconnected.');
+  renderBleDetail();
 }
 
 async function disconnectBLE() {
