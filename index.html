@@ -35,6 +35,17 @@
   .row-controls { display: flex; align-items: center; gap: 6px; }
   .stepper { display: flex; flex-direction: column; gap: 2px; }
   .stepper button { min-height: 19px; height: 19px; width: 28px; padding: 0; font-size: 13px; line-height: 15px; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+
+  .attenuation-grid { display: flex; align-items: flex-start; gap: 10px; width: fit-content; max-width: 100%; }
+  .attenuation-panel { width: 172px; flex: 0 0 172px; }
+  .attenuation-panel table { width: 172px; }
+  .submit-cell { height: 53px; display: flex; align-items: center; justify-content: center; }
+  .submit-cell button { width: 100%; }
+  @media (max-width: 380px) {
+    .attenuation-grid { gap: 6px; }
+    .attenuation-panel { width: 168px; flex-basis: 168px; }
+    .attenuation-panel table { width: 168px; }
+  }
   .bypass-row { margin: 7px 0 10px; }
   .bypass-row input { width: 22px; height: 22px; vertical-align: middle; }
   .delay-row { margin: 9px 0; }
@@ -75,17 +86,28 @@
   <label for="bypass">Bypass SPA Attn (TX) Path</label>
 </div>
 
-<table>
-  <colgroup><col style="width:64px"><col style="width:108px"></colgroup>
-  <thead><tr><th>Band</th><th>Attn (dB)</th></tr></thead>
-  <tbody id="bandTable"></tbody>
-</table>
+<div class="attenuation-grid">
+  <div class="attenuation-panel">
+    <table>
+      <colgroup><col style="width:64px"><col style="width:108px"></colgroup>
+      <thead><tr><th>Band</th><th>Attn (dB)</th></tr></thead>
+      <tbody id="bandTableLeft"></tbody>
+    </table>
+  </div>
 
-<div style="margin-top:10px;">
-  <button type="button" id="submitAllButton" disabled>Submit All</button>
+  <div class="attenuation-panel">
+    <table>
+      <colgroup><col style="width:64px"><col style="width:108px"></colgroup>
+      <thead><tr><th>Band</th><th>Attn (dB)</th></tr></thead>
+      <tbody id="bandTableRight"></tbody>
+    </table>
+    <div class="submit-cell">
+      <button type="button" id="submitAllButton" disabled>Submit All</button>
+    </div>
+  </div>
 </div>
 
-<h2>PTT Delay Settings (0 - 250 ms)</h2>
+<h2>PTT Delay Settings (0 - 250 mS)</h2>
 <div class="delay-row">
   <label for="delay1">PTT OUT 1:</label>
   <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
@@ -211,9 +233,13 @@ function setConnected(connected) {
 }
 
 function buildBandTable() {
-  const tbody = $('bandTable');
+  const leftBody = $('bandTableLeft');
+  const rightBody = $('bandTableRight');
+
   BANDS.forEach((band, i) => {
+    const tbody = i < 6 ? leftBody : rightBody;
     const tr = document.createElement('tr');
+
     tr.innerHTML =
       '<td><button type="button" class="band-button" id="band-' + i +
       '" onclick="sendAttn(' + i + ')">' + band + '</button></td>' +
@@ -224,6 +250,7 @@ function buildBandTable() {
       '<button type="button" onclick="stepAttn(' + i + ',1)">▲</button>' +
       '<button type="button" onclick="stepAttn(' + i + ',-1)">▼</button>' +
       '</div></div></td>';
+
     tbody.appendChild(tr);
 
     const input = $('attn-' + i);
