@@ -541,6 +541,75 @@
     }
   }
 
+
+  @media (max-width:480px) {
+    /* Match Submit All to the complete attenuation control height
+       (number field plus its visible stepper/control treatment). */
+    .attenuation-grid #submitAllButton {
+      box-sizing:border-box !important;
+      height:44px !important;
+      min-height:44px !important;
+      line-height:1.15 !important;
+      padding-top:4px !important;
+      padding-bottom:4px !important;
+    }
+
+    /* Slightly enlarge only the PTT Delay Settings heading. */
+    .delay-save-layout + .footer {
+      /* horizontal layout intentionally unchanged */
+    }
+
+    h2:last-of-type {
+      font-size:20px !important;
+      line-height:1.10 !important;
+    }
+  }
+
+  @media (max-width:480px) and (max-height:750px) {
+    .attenuation-grid #submitAllButton {
+      height:42px !important;
+      min-height:42px !important;
+    }
+
+    h2:last-of-type {
+      font-size:19px !important;
+    }
+  }
+
+
+  @media (max-width:480px) {
+    /* Center main title. */
+    h1 {
+      text-align:center !important;
+    }
+
+    /* TX Attenuation and PTT Delay headings: same size, centered,
+       with existing margins preserved so overall page height stays controlled. */
+    h2 {
+      font-size:20px !important;
+      line-height:1.10 !important;
+    }
+
+    h2:last-of-type {
+      text-align:center !important;
+    }
+  }
+
+  @media (max-width:480px) and (max-height:750px) {
+    h2,
+    h2:last-of-type {
+      font-size:19px !important;
+    }
+  }
+
+
+  @media (max-width:480px) {
+    /* Center TX Attenuation by Band as well as the PTT Delay heading. */
+    h2 {
+      text-align:center !important;
+    }
+  }
+
 </style>
 </head>
 <body>
