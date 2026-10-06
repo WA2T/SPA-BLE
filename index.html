@@ -54,7 +54,7 @@
 <h1>Smart Power Attenuator</h1>
 
 <div class="ble-state">
-  BLE: <span id="bleState">Disconnected</span><span id="bleDetail"></span>
+  <span id="bleStatus">BLE: Disconnected</span>
 </div>
 
 <div class="current-status">
@@ -133,10 +133,11 @@ const delayDirty = [false, false];
 
 const $ = id => document.getElementById(id);
 
-function renderBleDetail(text = '', isError = false) {
-  const detail = $('bleDetail');
-  detail.textContent = text ? ' - ' + text : '';
-  detail.className = isError ? 'error' : '';
+let bleConnected = false;
+
+function renderBleConnectionState() {
+  $('bleStatus').textContent = bleConnected ? 'BLE: Connected' : 'BLE: Disconnected';
+  $('bleStatus').className = '';
 }
 
 function setMessage(text, isError = false, clearAfterMs = 0) {
@@ -145,11 +146,16 @@ function setMessage(text, isError = false, clearAfterMs = 0) {
     messageClearTimer = null;
   }
 
-  renderBleDetail(text, isError);
+  if (text) {
+    $('bleStatus').textContent = text;
+    $('bleStatus').className = isError ? 'error' : '';
+  } else {
+    renderBleConnectionState();
+  }
 
   if (clearAfterMs > 0) {
     messageClearTimer = setTimeout(function() {
-      renderBleDetail();
+      renderBleConnectionState();
       messageClearTimer = null;
     }, clearAfterMs);
   }
@@ -196,8 +202,8 @@ function setConnected(connected) {
   $('disconnectButton').disabled = !connected;
   $('submitAllButton').disabled = !connected;
   $('saveDelaysButton').disabled = !connected;
-  $('bleState').textContent = connected ? 'Connected' : 'Disconnected';
-  if (!connected) renderBleDetail();
+  bleConnected = connected;
+  renderBleConnectionState();
   if (!connected) {
     $('currentBand').textContent = 'Connect to view';
     $('currentAttn').textContent = 'Connect to view';
@@ -276,7 +282,7 @@ async function connectBLE() {
   }
 
   try {
-    setMessage('Selecting SPA-BLE...');
+    renderBleConnectionState();
     device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [SERVICE_UUID] }],
       optionalServices: [SERVICE_UUID]
@@ -293,7 +299,6 @@ async function connectBLE() {
     statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
 
     setConnected(true);
-    renderBleDetail();
     startStatusPolling();
   } catch (err) {
     setConnected(false);
@@ -308,7 +313,7 @@ function disconnected() {
   commandCharacteristic = null;
   statusCharacteristic = null;
   server = null;
-  renderBleDetail();
+  renderBleConnectionState();
 }
 
 async function disconnectBLE() {
