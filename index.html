@@ -11,9 +11,9 @@
   body { margin: 0; padding: 14px; font-size: 18px; background: #fff; color: #000; }
   h1 { font-size: 26px; margin: 4px 0 12px; }
   h2 { font-size: 21px; margin: 14px 0 9px; }
-  .status-connect-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .status-connect-row { display: flex; align-items: stretch; gap: 10px; margin-bottom: 10px; }
   .current-status { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: fit-content; max-width: 100%; padding: 8px 10px; border: 1px solid #000; border-radius: 5px; }
-  #connectionButton { white-space: nowrap; }
+  #connectionButton { white-space: nowrap; align-self: stretch; height: auto; margin: 0; }
   .status-item { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
   .status-label { text-align: left; }
   .status-value { text-align: left; }
@@ -563,11 +563,11 @@ async function sendBypass() {
   }
 }
 
-$('connectionButton').addEventListener('click', function() {
-  if (bleDevice && bleDevice.gatt && bleDevice.gatt.connected) {
+$('connectionButton').addEventListener('click', async function() {
+  if (bleConnected) {
     disconnectBLE();
   } else {
-    connectBLE();
+    await connectBLE();
   }
 });
 $('submitAllButton').addEventListener('click', sendAllAttn);
