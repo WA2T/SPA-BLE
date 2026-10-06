@@ -446,6 +446,42 @@ async function sendAllAttn() {
   }
 }
 
+
+async function sendDelay(which) {
+  const id = which === 1 ? 'delay1' : 'delay2';
+  const value = validNumber(id, 0, 250);
+  if (value === null) return false;
+
+  const command = 'DELAY' + which + '=' + value;
+
+  if (await sendCommand(command)) {
+    delayDirty[which - 1] = false;
+
+    pendingMessage = {
+      type: 'delay',
+      which: which,
+      value: value
+    };
+
+    armPendingTimeout();
+
+    setMessage(
+      'Setting PTT OUT ' +
+      which +
+      ' delay to ' +
+      value +
+      ' ms...'
+    );
+
+    // Request confirmation without blocking the command path.
+    await new Promise(resolve => setTimeout(resolve, 75));
+    await sendCommand('GET');
+    return true;
+  }
+
+  return false;
+}
+
 async function saveDelays() {
   if (!commandCharacteristic) {
     setMessage('Connect to SPA-BLE first.', true);
@@ -507,7 +543,7 @@ $('delay1').addEventListener('change', async function() {
 $('delay1').addEventListener('keydown', async event => {
   if (event.key === 'Enter') {
     event.preventDefault();
-    await saveDelays();
+    await sendDelay(1);
     $('delay1').blur();
   }
 });
@@ -519,7 +555,7 @@ $('delay2').addEventListener('change', async function() {
 $('delay2').addEventListener('keydown', async event => {
   if (event.key === 'Enter') {
     event.preventDefault();
-    await saveDelays();
+    await sendDelay(2);
     $('delay2').blur();
   }
 });
