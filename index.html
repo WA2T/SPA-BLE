@@ -227,6 +227,126 @@
     .footer { margin-top:2px; }
   }
 
+
+  /* iPhone comfort-fit overrides: retain full-width use while restoring tap space. */
+  @media (max-width:480px) {
+    /* More breathing room vertically, without recreating wasted side space. */
+    body {
+      padding-left:max(6px, env(safe-area-inset-left));
+      padding-right:max(6px, env(safe-area-inset-right));
+    }
+
+    h1 { margin-bottom:8px; }
+    h2 { margin-top:10px; margin-bottom:7px; }
+
+    .status-connect-row {
+      gap:7px;
+      margin-bottom:7px;
+    }
+
+    .bypass-row { margin:6px 0; }
+
+    /* Use nearly all horizontal space; keep only a narrow center gutter. */
+    .attenuation-grid {
+      width:100%;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      column-gap:4px;
+      row-gap:0;
+    }
+
+    .attenuation-grid > * {
+      width:100%;
+      min-width:0;
+      margin:0;
+    }
+
+    table {
+      width:100%;
+      margin:0;
+    }
+
+    /* Restore comfortable band-row spacing and tap targets. */
+    th, td {
+      padding:4px 4px;
+      line-height:1.15;
+    }
+
+    button {
+      min-height:40px;
+      padding-top:6px;
+      padding-bottom:6px;
+    }
+
+    input[type=number] {
+      min-height:40px;
+    }
+
+    .stepper button {
+      min-height:20px;
+      padding-top:2px;
+      padding-bottom:2px;
+    }
+
+    .submit-cell { margin-top:6px; }
+
+    /* PTT labels sit directly beside their controls with no artificial gap. */
+    .delay-save-layout {
+      width:100%;
+      display:flex;
+      align-items:stretch;
+      gap:4px;
+    }
+
+    .delay-fields {
+      flex:0 1 auto;
+      gap:6px;
+    }
+
+    .delay-save-layout .delay-row {
+      display:grid;
+      grid-template-columns:max-content max-content;
+      align-items:center;
+      column-gap:2px;
+      width:max-content;
+    }
+
+    .delay-save-layout .delay-row label {
+      margin:0;
+      padding:0;
+      white-space:nowrap;
+    }
+
+    .delay-save-layout .row-controls {
+      margin:0;
+    }
+
+    /* Fill recovered width and finish close to the delay arrow controls. */
+    .delay-save-layout #saveDelaysButton {
+      flex:1 1 auto;
+      min-width:0;
+      margin:0;
+      align-self:stretch;
+      height:auto;
+      padding-left:10px;
+      padding-right:10px;
+    }
+
+    .footer { margin-top:7px; }
+  }
+
+  /* Short screens still keep useful tap targets; only trim non-interactive gaps. */
+  @media (max-width:480px) and (max-height:750px) {
+    h1 { margin-bottom:5px; }
+    h2 { margin-top:7px; margin-bottom:5px; }
+    .status-connect-row { margin-bottom:5px; }
+    .bypass-row { margin:4px 0; }
+    th, td { padding-top:3px; padding-bottom:3px; }
+    button, input[type=number] { min-height:38px; }
+    .stepper button { min-height:19px; }
+    .delay-fields { gap:5px; }
+    .footer { margin-top:4px; }
+  }
+
 </style>
 </head>
 <body>
