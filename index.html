@@ -610,6 +610,67 @@
     }
   }
 
+
+  /* Final corrective overrides: headings centered to page width and
+     Submit All matched to the attenuation input control height. */
+  @media (max-width:480px) {
+    body > h1,
+    body > h2 {
+      display:block !important;
+      position:relative !important;
+      left:auto !important;
+      right:auto !important;
+      float:none !important;
+      clear:both !important;
+      width:100% !important;
+      max-width:none !important;
+      margin-left:0 !important;
+      margin-right:0 !important;
+      padding-left:0 !important;
+      padding-right:0 !important;
+      text-align:center !important;
+      align-self:stretch !important;
+      box-sizing:border-box !important;
+    }
+
+    body > h1 {
+      font-size:26px !important;
+    }
+
+    body > h2 {
+      font-size:20px !important;
+      line-height:1.10 !important;
+    }
+
+    /* The attenuation fields render at 44px in this layout. Force the
+       Submit All button to the identical outer box dimensions. */
+    body .attenuation-grid #submitAllButton {
+      box-sizing:border-box !important;
+      display:block !important;
+      width:100% !important;
+      height:44px !important;
+      min-height:44px !important;
+      max-height:44px !important;
+      margin:0 !important;
+      padding:0 10px !important;
+      border-width:2px !important;
+      line-height:40px !important;
+    }
+  }
+
+  @media (max-width:480px) and (max-height:750px) {
+    body > h2 {
+      font-size:19px !important;
+    }
+
+    body .attenuation-grid #submitAllButton {
+      height:42px !important;
+      min-height:42px !important;
+      max-height:42px !important;
+      line-height:38px !important;
+    }
+  }
+
 </style>
 </head>
 <body>
