@@ -11,12 +11,16 @@
   body { margin: 0; padding: 14px; font-size: 18px; background: #fff; color: #000; }
   h1 { font-size: 26px; margin: 4px 0 12px; }
   h2 { font-size: 21px; margin: 14px 0 9px; }
-  .current-status { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 10px; width: fit-content; max-width: 100%; padding: 8px 10px; border: 1px solid #000; border-radius: 5px; }
+  .status-connect-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .current-status { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: fit-content; max-width: 100%; padding: 8px 10px; border: 1px solid #000; border-radius: 5px; }
+  #connectionButton { white-space: nowrap; }
   .status-item { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
   .status-label { text-align: left; }
   .status-value { text-align: left; }
   @media (max-width: 480px) {
+    .status-connect-row { gap: 7px; }
     .current-status { gap: 4px; padding: 7px 8px; font-size: 14px; }
+    #connectionButton { padding-left: 8px; padding-right: 8px; }
     .status-item { gap: 3px; }
   }
   .ble-state { margin-bottom: 8px; }
@@ -68,14 +72,12 @@
   <span id="bleStatus">BLE: Disconnected</span>
 </div>
 
-<div class="current-status">
-  <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">Connect to view</span></span>
-  <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">Connect to view</span></span>
-</div>
-
-<div class="connection">
-  <button id="connectButton">Connect BLE</button>
-  <button id="disconnectButton" disabled>Disconnect</button>
+<div class="status-connect-row">
+  <div class="current-status">
+    <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">Connect to view</span></span>
+    <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">Connect to view</span></span>
+  </div>
+  <button id="connectionButton">Connect BLE</button>
 </div>
 
 
@@ -220,8 +222,7 @@ function clearPendingMessage() {
 }
 
 function setConnected(connected) {
-  $('connectButton').disabled = connected;
-  $('disconnectButton').disabled = !connected;
+  $('connectionButton').textContent = connected ? 'Disconnect' : 'Connect BLE';
   $('submitAllButton').disabled = !connected;
   $('saveDelaysButton').disabled = !connected;
   bleConnected = connected;
@@ -562,8 +563,13 @@ async function sendBypass() {
   }
 }
 
-$('connectButton').addEventListener('click', connectBLE);
-$('disconnectButton').addEventListener('click', disconnectBLE);
+$('connectionButton').addEventListener('click', function() {
+  if (bleDevice && bleDevice.gatt && bleDevice.gatt.connected) {
+    disconnectBLE();
+  } else {
+    connectBLE();
+  }
+});
 $('submitAllButton').addEventListener('click', sendAllAttn);
 $('saveDelaysButton').addEventListener('click', saveDelays);
 $('bypass').addEventListener('change', sendBypass);
