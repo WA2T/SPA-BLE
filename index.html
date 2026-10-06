@@ -23,7 +23,7 @@
     #connectionButton { padding-left: 8px; padding-right: 8px; }
     .status-item { gap: 3px; }
   }
-  .ble-state { margin-bottom: 8px; }
+  .ble-state { display: flex; align-items: center; margin: 0; min-width: 0; }
   .connection { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
   button { font-size: 18px; min-height: 44px; padding: 8px 13px; border: 1px solid #000; border-radius: 5px; background: #f2f2f2; color: #000; }
   button:disabled { opacity: .45; }
@@ -68,16 +68,13 @@
 <body>
 <h1>Smart Power Attenuator</h1>
 
-<div class="ble-state">
-  <span id="bleStatus">BLE: Disconnected</span>
-</div>
-
 <div class="status-connect-row">
   <div class="current-status">
     <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">Connect to view</span></span>
     <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">Connect to view</span></span>
   </div>
   <button id="connectionButton">Connect BLE</button>
+  <div class="ble-state"><span id="bleStatus">BLE: Disconnected</span></div>
 </div>
 
 
@@ -129,9 +126,11 @@
       <button type="button" onclick="stepDelay(2,-1)">▼</button>
     </span>
   </span>
-</div>
+
+    <button type="button" id="saveDelaysButton" disabled>Save Delays</button>
+  </div>
 <div class="save-row">
-  <button type="button" id="saveDelaysButton" disabled>Save Delays</button>
+  
 </div>
 
 <div class="footer">
