@@ -1,1 +1,1 @@
-Smart Power Attenuator (SPA) BLE HTML code for Web Bluetooth on iPhone and Android mobile phones.  See wa2tdesigns.com for details.  Use Bluefy app on iPhone since Web Bluetooth is not supported by any browser running on iPhone.  Link to use: https://wa2t.github.io/SPA-BLE/
+Smart Power Attenuator (SPA) BLE HTML code for Web Bluetooth on iPhone and Android mobile phones.  See wa2tdesigns.com for SPA details.  Use Bluefy app on iPhone since Web Bluetooth is not supported by any browser running on iPhone.  Link to use: https://wa2t.github.io/SPA-BLE/
