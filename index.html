@@ -347,6 +347,115 @@
     .footer { margin-top:4px; }
   }
 
+
+  @media (max-width:480px) {
+    .delay-save-layout .delay-fields {
+      flex:0 0 auto;
+      width:auto;
+      min-width:0;
+    }
+
+    .delay-save-layout .delay-row {
+      display:flex;
+      flex-direction:row;
+      align-items:center;
+      justify-content:flex-start;
+      width:auto;
+      min-width:0;
+      gap:2px;
+      margin:0;
+      padding:0;
+    }
+
+    .delay-save-layout .delay-row label {
+      display:inline-block;
+      flex:0 0 auto;
+      width:auto !important;
+      min-width:0 !important;
+      margin:0 !important;
+      padding:0 !important;
+      white-space:nowrap;
+    }
+
+    .delay-save-layout .delay-row .row-controls {
+      display:inline-flex !important;
+      flex:0 0 auto;
+      width:auto !important;
+      min-width:0 !important;
+      margin:0 !important;
+      padding:0 !important;
+    }
+
+    .delay-save-layout #saveDelaysButton {
+      flex:1 1 auto;
+      margin-left:2px;
+    }
+  }
+
+
+  /* Align all major control groups to the same right-hand page edge. */
+  @media (max-width:480px) {
+    .status-connect-row,
+    .attenuation-grid,
+    .delay-save-layout {
+      width:100% !important;
+      max-width:100% !important;
+      margin-left:0 !important;
+      margin-right:0 !important;
+    }
+
+    /* Current Band/Attenuation box grows so BLE Connect finishes at grid edge. */
+    .status-connect-row .current-status {
+      flex:1 1 auto;
+      width:auto !important;
+      min-width:0;
+    }
+
+    .status-connect-row #connectionButton {
+      flex:0 0 auto;
+      margin-right:0 !important;
+    }
+
+    /* Make each attenuation half consume exactly half of the usable width. */
+    .attenuation-grid {
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+      column-gap:4px !important;
+    }
+
+    .attenuation-grid > div,
+    .attenuation-grid table {
+      width:100% !important;
+      max-width:none !important;
+      margin-left:0 !important;
+      margin-right:0 !important;
+    }
+
+    /* Submit All container/button follows the right edge of its second column. */
+    .attenuation-grid .submit-cell {
+      width:100% !important;
+      max-width:none !important;
+      margin-right:0 !important;
+    }
+
+    .attenuation-grid #submitAllButton {
+      width:100% !important;
+      max-width:none !important;
+      margin-right:0 !important;
+    }
+
+    /* Delay controls stay compact at left; Save Delays fills to identical edge. */
+    .delay-save-layout .delay-fields {
+      flex:0 0 auto;
+    }
+
+    .delay-save-layout #saveDelaysButton {
+      flex:1 1 auto;
+      width:auto !important;
+      max-width:none !important;
+      margin-right:0 !important;
+    }
+  }
+
 </style>
 </head>
 <body>
