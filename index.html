@@ -52,7 +52,7 @@
   }
   .bypass-row { margin: 7px 0 10px; }
   .bypass-row input { width: 22px; height: 22px; vertical-align: middle; }
-  .delay-row { margin: 9px 0; }
+  .delay-row { display: flex; align-items: stretch; gap: 8px; flex-wrap: nowrap; }
   .delay-row label { display: inline-block; min-width: 118px; }
   .save-row { margin-top: 10px; }
   .footer { font-size: 15px; font-weight: normal; margin-top: 10px; line-height: 1.35; }
@@ -62,6 +62,31 @@
     h2 { font-size: 20px; }
     button, input[type=number] { font-size: 17px; }
     th, td { padding: 4px; }
+  }
+  #saveDelaysButton { white-space: nowrap; align-self: stretch; height: auto; margin: 0; }
+
+  .delay-save-layout { display:flex; align-items:stretch; gap:8px; }
+  .delay-fields { display:flex; flex-direction:column; gap:6px; }
+  .delay-save-layout .delay-row { display:flex; align-items:center; gap:6px; }
+  .delay-save-layout #saveDelaysButton { white-space:nowrap; align-self:stretch; height:auto; margin:0; }
+
+  @media (max-width:480px) {
+    body { padding:8px; font-size:15px; }
+    h1 { font-size:22px; margin:2px 0 7px; }
+    h2 { font-size:18px; margin:8px 0 5px; }
+    .status-connect-row { gap:5px; margin-bottom:5px; }
+    .current-status { gap:2px; padding:5px 7px; font-size:13px; }
+    #connectionButton { min-height:0; padding:5px 7px; font-size:15px; }
+    .bypass-row { margin:4px 0; }
+    th, td { padding:2px 4px; }
+    button { min-height:36px; padding:5px 9px; font-size:15px; }
+    input[type=number] { font-size:15px; }
+    .attenuation-grid { gap:6px; }
+    .submit-cell { margin-top:4px; }
+    .delay-save-layout { gap:6px; }
+    .delay-fields { gap:4px; }
+    .delay-save-layout .delay-row { gap:4px; }
+    .footer { margin-top:5px; font-size:12px; }
   }
 </style>
 </head>
@@ -73,8 +98,7 @@
     <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">Connect to view</span></span>
     <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">Connect to view</span></span>
   </div>
-  <button id="connectionButton">Connect BLE</button>
-  <div class="ble-state"><span id="bleStatus">BLE: Disconnected</span></div>
+  <button id="connectionButton">BLE Connect</button>
 </div>
 
 
@@ -107,30 +131,30 @@
 </div>
 
 <h2>PTT Delay Settings (0 - 250 mS)</h2>
-<div class="delay-row">
-  <label for="delay1">PTT OUT 1:</label>
-  <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
-    <input id="delay1" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
-    <span class="stepper">
-      <button type="button" onclick="stepDelay(1,1)">▲</button>
-      <button type="button" onclick="stepDelay(1,-1)">▼</button>
-    </span>
-  </span>
-</div>
-<div class="delay-row">
-  <label for="delay2">PTT OUT 2:</label>
-  <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
-    <input id="delay2" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
-    <span class="stepper">
-      <button type="button" onclick="stepDelay(2,1)">▲</button>
-      <button type="button" onclick="stepDelay(2,-1)">▼</button>
-    </span>
-  </span>
-
-    <button type="button" id="saveDelaysButton" disabled>Save Delays</button>
+<div class="delay-save-layout">
+  <div class="delay-fields">
+    <div class="delay-row">
+      <label for="delay1">PTT OUT 1:</label>
+      <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
+        <input id="delay1" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
+        <span class="stepper">
+          <button type="button" onclick="stepDelay(1,1)">▲</button>
+          <button type="button" onclick="stepDelay(1,-1)">▼</button>
+        </span>
+      </span>
+    </div>
+    <div class="delay-row">
+      <label for="delay2">PTT OUT 2:</label>
+      <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
+        <input id="delay2" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
+        <span class="stepper">
+          <button type="button" onclick="stepDelay(2,1)">▲</button>
+          <button type="button" onclick="stepDelay(2,-1)">▼</button>
+        </span>
+      </span>
+    </div>
   </div>
-<div class="save-row">
-  
+  <button type="button" id="saveDelaysButton" disabled>Save Delays</button>
 </div>
 
 <div class="footer">
@@ -159,8 +183,9 @@ const $ = id => document.getElementById(id);
 let bleConnected = false;
 
 function renderBleConnectionState() {
-  $('bleStatus').textContent = bleConnected ? 'BLE: Connected' : 'BLE: Disconnected';
-  $('bleStatus').className = '';
+  $('connectionButton').textContent = bleConnected ? 'BLE Connected' : 'BLE Connect';
+  $('connectionButton').className = '';
+  $('connectionButton').title = bleConnected ? 'SPA-BLE connected' : 'SPA-BLE disconnected';
 }
 
 function setMessage(text, isError = false, clearAfterMs = 0) {
@@ -169,12 +194,9 @@ function setMessage(text, isError = false, clearAfterMs = 0) {
     messageClearTimer = null;
   }
 
-  if (text) {
-    $('bleStatus').textContent = text;
-    $('bleStatus').className = isError ? 'error' : '';
-  } else {
-    renderBleConnectionState();
-  }
+  // Keep the compact layout: command/result feedback is available as the
+  // connection button tooltip rather than using a separate BLE status row.
+  $('connectionButton').title = text || (bleConnected ? 'SPA-BLE connected' : 'SPA-BLE disconnected');
 
   if (clearAfterMs > 0) {
     messageClearTimer = setTimeout(function() {
@@ -183,7 +205,6 @@ function setMessage(text, isError = false, clearAfterMs = 0) {
     }, clearAfterMs);
   }
 }
-
 
 function armPendingTimeout() {
   if (pendingTimeoutTimer) clearTimeout(pendingTimeoutTimer);
@@ -221,7 +242,7 @@ function clearPendingMessage() {
 }
 
 function setConnected(connected) {
-  $('connectionButton').textContent = connected ? 'Disconnect' : 'Connect BLE';
+  $('connectionButton').textContent = connected ? 'BLE Connected' : 'BLE Connect';
   $('submitAllButton').disabled = !connected;
   $('saveDelaysButton').disabled = !connected;
   bleConnected = connected;
@@ -311,7 +332,7 @@ async function connectBLE() {
   try {
     renderBleConnectionState();
     device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [SERVICE_UUID] }],
+      filters: [{ name: 'SPA-BLE' }],
       optionalServices: [SERVICE_UUID]
     });
 
