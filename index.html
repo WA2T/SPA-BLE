@@ -671,6 +671,35 @@
     }
   }
 
+
+  /* Larger main title; reclaim height from section-title spacing only. */
+  @media (max-width:480px) {
+    body > h1 {
+      font-size:30px !important;
+      line-height:1.04 !important;
+      margin-top:0 !important;
+      margin-bottom:10px !important;
+    }
+
+    body > h2 {
+      /* Keep the section-title text size, but use less vertical margin. */
+      margin-top:7px !important;
+      margin-bottom:6px !important;
+    }
+  }
+
+  @media (max-width:480px) and (max-height:750px) {
+    body > h1 {
+      font-size:28px !important;
+      margin-bottom:7px !important;
+    }
+
+    body > h2 {
+      margin-top:5px !important;
+      margin-bottom:4px !important;
+    }
+  }
+
 </style>
 </head>
 <body>
