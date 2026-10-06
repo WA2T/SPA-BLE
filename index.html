@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Smart Power Attenuator</title>
@@ -728,6 +728,29 @@
     }
   }
 
+
+  /* Prevent iPhone/Bluefy input-focus zoom from widening the page after Done. */
+  html, body {
+    width:100% !important;
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  @media (max-width:480px) {
+    input,
+    input[type=number],
+    select,
+    textarea {
+      font-size:16px !important; /* iOS does not auto-zoom inputs at >=16px */
+    }
+
+    body {
+      position:relative;
+      left:0 !important;
+      right:0 !important;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -1265,5 +1288,32 @@ $('delay2').addEventListener('keydown', async event => {
 buildBandTable();
 setConnected(false);
 </script>
+
+<script>
+(function () {
+  function restoreSpaViewport() {
+    window.setTimeout(function () {
+      window.scrollTo(0, window.scrollY);
+      document.documentElement.scrollLeft = 0;
+      document.body.scrollLeft = 0;
+    }, 60);
+  }
+
+  document.addEventListener('focusout', function (event) {
+    if (event.target && event.target.matches &&
+        event.target.matches('input, select, textarea')) {
+      restoreSpaViewport();
+    }
+  }, true);
+
+  document.addEventListener('change', function (event) {
+    if (event.target && event.target.matches &&
+        event.target.matches('input, select, textarea')) {
+      restoreSpaViewport();
+    }
+  }, true);
+})();
+</script>
+
 </body>
 </html>
