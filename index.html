@@ -86,7 +86,7 @@
   <button type="button" id="submitAllButton" disabled>Submit All</button>
 </div>
 
-<h2>PTT Delay Settings (0 - 250 ms)</h2>
+<h2>PTT Delay Settings (0 - 250 mS)</h2>
 <div class="delay-row">
   <label for="delay1">PTT OUT 1:</label>
   <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
@@ -129,10 +129,18 @@ let statusPollTimer = null;
 let pendingMessage = null;
 let messageClearTimer = null;
 let pendingTimeoutTimer = null;
+let currentBleStateText = 'Disconnected';
 const attnDirty = new Array(BANDS.length).fill(false);
 const delayDirty = [false, false];
 
 const $ = id => document.getElementById(id);
+
+function renderBleStatus(detail = '', isError = false) {
+  const el = $('message');
+  el.innerHTML = '<strong>BLE:</strong> ' + currentBleStateText +
+    (detail ? ' - ' + detail : '');
+  el.className = isError ? 'connected error' : 'connected';
+}
 
 function setMessage(text, isError = false, clearAfterMs = 0) {
   if (messageClearTimer) {
@@ -140,13 +148,11 @@ function setMessage(text, isError = false, clearAfterMs = 0) {
     messageClearTimer = null;
   }
 
-  $('message').textContent = text;
-  $('message').className = isError ? 'connected error' : 'connected';
+  renderBleStatus(text, isError);
 
   if (clearAfterMs > 0) {
     messageClearTimer = setTimeout(function() {
-      $('message').textContent = '';
-      $('message').className = 'connected';
+      renderBleStatus();
       messageClearTimer = null;
     }, clearAfterMs);
   }
