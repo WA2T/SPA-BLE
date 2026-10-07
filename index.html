@@ -767,118 +767,6 @@
   }
 
 
-/* Center the Bypass checkbox and label together without changing other layout. */
-.bypass-container,
-.bypass-row,
-#bypassContainer,
-#bypassRow {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100% !important;
-  text-align: center !important;
-}
-
-label[for="bypass"],
-label[for="bypassCheckbox"],
-#bypassLabel {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100% !important;
-  text-align: center !important;
-}
-
-
-/* Final bypass alignment override: center checkbox + text as one unit. */
-body .bypass-row {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: center !important;
-  align-items: center !important;
-  gap: 8px !important;
-  width: 100% !important;
-  max-width: none !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  text-align: center !important;
-  box-sizing: border-box !important;
-}
-
-body .bypass-row #bypass {
-  position: static !important;
-  float: none !important;
-  left: auto !important;
-  right: auto !important;
-  top: auto !important;
-  bottom: auto !important;
-  transform: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  flex: 0 0 auto !important;
-  width: 20px !important;
-  height: 20px !important;
-}
-
-body .bypass-row label[for="bypass"] {
-  display: inline-block !important;
-  position: static !important;
-  float: none !important;
-  left: auto !important;
-  right: auto !important;
-  transform: none !important;
-  width: auto !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  flex: 0 0 auto !important;
-  text-align: left !important;
-}
-
-
-/* Bypass control: center checkbox + label together as one shrink-wrapped unit. */
-body .bypass-row {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100% !important;
-  text-align: center !important;
-}
-body .bypass-row .bypass-center {
-  display: inline-flex !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
-  justify-content: center !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin: 0 auto !important;
-  padding: 0 !important;
-}
-body .bypass-row .bypass-center #bypass {
-  position: static !important;
-  display: inline-block !important;
-  float: none !important;
-  flex: 0 0 auto !important;
-  width: 20px !important;
-  height: 20px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  transform: none !important;
-}
-body .bypass-row .bypass-center label[for="bypass"] {
-  position: static !important;
-  display: inline-block !important;
-  float: none !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  transform: none !important;
-  text-align: left !important;
-}
-
 /* BLE-dependent controls are visibly unavailable while disconnected. */
 body.ble-disconnected input:disabled,
 body.ble-disconnected button:disabled {
@@ -932,39 +820,30 @@ body.ble-disconnected .delay-section .stepper {
 }
 
 
-/* Restore Bypass checkbox + label to the original left-justified layout. */
+
+/* Bypass: original left-justified checkbox and label. */
 body .bypass-row {
   display: block !important;
-  width: auto !important;
-  max-width: none !important;
   text-align: left !important;
-  justify-content: initial !important;
-  align-items: initial !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  width: 100% !important;
 }
-body .bypass-row #bypass {
-  position: static !important;
+body .bypass-row input#bypass {
   display: inline-block !important;
+  position: static !important;
   float: none !important;
   width: 22px !important;
   height: 22px !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 0 4px 0 0 !important;
   vertical-align: middle !important;
-  transform: none !important;
 }
 body .bypass-row label[for="bypass"] {
-  position: static !important;
   display: inline !important;
+  position: static !important;
   float: none !important;
   width: auto !important;
-  max-width: none !important;
   margin: 0 !important;
-  padding: 0 !important;
   text-align: left !important;
   vertical-align: middle !important;
-  transform: none !important;
 }
 
 </style>
