@@ -837,6 +837,100 @@ body .bypass-row label[for="bypass"] {
   text-align: left !important;
 }
 
+
+/* Bypass control: center checkbox + label together as one shrink-wrapped unit. */
+body .bypass-row {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+body .bypass-row .bypass-center {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+}
+body .bypass-row .bypass-center #bypass {
+  position: static !important;
+  display: inline-block !important;
+  float: none !important;
+  flex: 0 0 auto !important;
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+body .bypass-row .bypass-center label[for="bypass"] {
+  position: static !important;
+  display: inline-block !important;
+  float: none !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  text-align: left !important;
+}
+
+/* BLE-dependent controls are visibly unavailable while disconnected. */
+body.ble-disconnected input:disabled,
+body.ble-disconnected button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(1) !important;
+}
+body.ble-disconnected input:disabled {
+  background-color: #e5e5e5 !important;
+}
+
+
+/* Disconnected state: make PTT delay inputs and custom up/down steppers
+   visibly disabled just like the attenuation controls. */
+body.ble-disconnected .delay-section input,
+body.ble-disconnected .delay-section input[type="number"],
+body.ble-disconnected #delay1,
+body.ble-disconnected #delay2 {
+  opacity: 0.45 !important;
+  background: #e5e5e5 !important;
+  color: #777 !important;
+  -webkit-text-fill-color: #777 !important;
+  cursor: not-allowed !important;
+}
+
+/* Custom numeric stepper buttons/arrows */
+body.ble-disconnected .delay-section .stepper,
+body.ble-disconnected .delay-section .stepper button,
+body.ble-disconnected .delay-section .step-btn,
+body.ble-disconnected .delay-section .step-up,
+body.ble-disconnected .delay-section .step-down,
+body.ble-disconnected .delay-section .num-stepper,
+body.ble-disconnected .delay-section .stepper-up,
+body.ble-disconnected .delay-section .stepper-down {
+  opacity: 0.45 !important;
+  background: #e5e5e5 !important;
+  color: #777 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  filter: grayscale(1) !important;
+}
+
+
+/* Exact custom stepper classes used by this page. */
+body.ble-disconnected .delay-section .stepper {
+  opacity:0.45 !important;
+  color:#777 !important;
+  background:#e5e5e5 !important;
+  pointer-events:none !important;
+  filter:grayscale(1) !important;
+}
+
 </style>
 </head>
 <body>
@@ -854,8 +948,10 @@ body .bypass-row label[for="bypass"] {
 <h2>TX Attenuation by Band (0 - 15 dB)</h2>
 
 <div class="bypass-row">
-  <input id="bypass" type="checkbox">
-  <label for="bypass">Bypass SPA Attn (TX) Path</label>
+  <div class="bypass-center">
+    <input id="bypass" type="checkbox">
+    <label for="bypass">Bypass SPA Attn (TX) Path</label>
+  </div>
 </div>
 
 <div class="attenuation-grid">
@@ -911,6 +1007,27 @@ body .bypass-row label[for="bypass"] {
 </div>
 
 <script>
+
+function setBleDependentControlsEnabled(enabled) {
+  document.body.classList.toggle('ble-disconnected', !enabled);
+
+  // All controls that send commands to SPA require an active BLE connection.
+  document.querySelectorAll(
+    '.attenuation-grid input, .attenuation-grid button, ' +
+    '.bypass-row input, .delay-section input, .delay-section button, ' +
+    '.delay-section .stepper, .delay-section .step-btn, .delay-section .step-up, ' +
+    '.delay-section .step-down, .delay-section .num-stepper, ' +
+    '.delay-section .stepper-up, .delay-section .stepper-down, ' +
+    '.delay-section .stepper, #delay1, #delay2, #submitAllButton, #saveDelaysButton'
+  ).forEach(function (el) {
+    el.disabled = !enabled;
+  });
+
+  // The connection button must always remain usable.
+  const connectionButton = document.getElementById('connectionButton');
+  if (connectionButton) connectionButton.disabled = false;
+}
+
 const SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const COMMAND_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 const STATUS_UUID  = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
@@ -935,6 +1052,8 @@ function renderBleConnectionState() {
   $('connectionButton').textContent = bleConnected ? 'BLE Connected' : 'BLE Connect';
   $('connectionButton').className = '';
   $('connectionButton').title = bleConnected ? 'SPA-BLE connected' : 'SPA-BLE disconnected';
+  setBleDependentControlsEnabled(bleConnected);
+
 }
 
 function setMessage(text, isError = false, clearAfterMs = 0) {
@@ -1373,6 +1492,8 @@ $('delay2').addEventListener('keydown', async event => {
 
 buildBandTable();
 setConnected(false);
+
+setBleDependentControlsEnabled(bleConnected);
 </script>
 
 <script>
