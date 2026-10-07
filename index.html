@@ -766,6 +766,29 @@
     }
   }
 
+
+/* Center the Bypass checkbox and label together without changing other layout. */
+.bypass-container,
+.bypass-row,
+#bypassContainer,
+#bypassRow {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+label[for="bypass"],
+label[for="bypassCheckbox"],
+#bypassLabel {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
 </style>
 </head>
 <body>
@@ -808,7 +831,7 @@
   </div>
 </div>
 
-<h2>PTT Delay Settings (0 - 250 mS)</h2>
+<h2>PTT Delay Settings (0 - 250 ms)</h2>
 <div class="delay-save-layout">
   <div class="delay-fields">
     <div class="delay-row">
