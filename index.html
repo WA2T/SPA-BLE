@@ -789,6 +789,54 @@ label[for="bypassCheckbox"],
   text-align: center !important;
 }
 
+
+/* Final bypass alignment override: center checkbox + text as one unit. */
+body .bypass-row {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+body .bypass-row #bypass {
+  position: static !important;
+  float: none !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+body .bypass-row label[for="bypass"] {
+  display: inline-block !important;
+  position: static !important;
+  float: none !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+  text-align: left !important;
+}
+
 </style>
 </head>
 <body>
