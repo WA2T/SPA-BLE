@@ -959,7 +959,7 @@ function setBleDependentControlsEnabled(enabled) {
   // All controls that send commands to SPA require an active BLE connection.
   document.querySelectorAll(
     '.attenuation-grid input, .attenuation-grid button, ' +
-    '.bypass-row input, .delay-section input, .delay-section button, ' +
+    '.bypass-row input, .delay-save-layout input, .delay-save-layout .stepper button, ' +
     '.delay-section .stepper, .delay-section .step-btn, .delay-section .step-up, ' +
     '.delay-section .step-down, .delay-section .num-stepper, ' +
     '.delay-section .stepper-up, .delay-section .stepper-down, ' +
@@ -983,6 +983,11 @@ let server = null;
 let commandCharacteristic = null;
 let statusCharacteristic = null;
 let statusPollTimer = null;
+let lastStatusReceivedAt = 0;
+let consecutiveWriteFailures = 0;
+let statusRequestInFlight = false;
+const STATUS_TIMEOUT_MS = 8000;
+const MAX_WRITE_FAILURES = 3;
 let pendingMessage = null;
 let messageClearTimer = null;
 let pendingTimeoutTimer = null;
@@ -1159,6 +1164,8 @@ async function connectBLE() {
     await statusCharacteristic.startNotifications();
     statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
 
+    lastStatusReceivedAt = Date.now();
+    consecutiveWriteFailures = 0;
     setConnected(true);
     startStatusPolling();
   } catch (err) {
@@ -1169,6 +1176,9 @@ async function connectBLE() {
 
 function disconnected() {
   stopStatusPolling();
+  lastStatusReceivedAt = 0;
+  consecutiveWriteFailures = 0;
+  statusRequestInFlight = false;
   pendingMessage = null;
   setConnected(false);
   commandCharacteristic = null;
@@ -1198,8 +1208,24 @@ function stopStatusPolling() {
 }
 
 async function requestStatus() {
-  if (commandCharacteristic) {
+  if (!bleConnected) return;
+  if (!device || !device.gatt || !device.gatt.connected ||
+      !server || !server.connected) {
+    disconnected();
+    return;
+  }
+  // A successful BLE write alone does not prove the ESP32 is still responding.
+  // The firmware answers every GET with a status notification.
+  if (lastStatusReceivedAt && Date.now() - lastStatusReceivedAt > STATUS_TIMEOUT_MS) {
+    disconnectBLE();
+    return;
+  }
+  if (statusRequestInFlight) return;
+  statusRequestInFlight = true;
+  try {
     await sendCommand('GET');
+  } finally {
+    statusRequestInFlight = false;
   }
 }
 
@@ -1215,9 +1241,16 @@ async function sendCommand(command) {
     } else {
       await commandCharacteristic.writeValue(data);
     }
+    consecutiveWriteFailures = 0;
     return true;
   } catch (err) {
-    setMessage('BLE write failed: ' + err.message, true);
+    consecutiveWriteFailures++;
+    if (consecutiveWriteFailures >= MAX_WRITE_FAILURES ||
+        !device || !device.gatt || !device.gatt.connected) {
+      disconnectBLE();
+    } else {
+      setMessage('BLE write failed: ' + err.message, true);
+    }
     return false;
   }
 }
@@ -1260,6 +1293,9 @@ function parseStatus(text) {
 }
 
 function handleStatusNotification(event) {
+  if (!bleConnected) return;
+  lastStatusReceivedAt = Date.now();
+  consecutiveWriteFailures = 0;
   const text = new TextDecoder().decode(event.target.value);
   parseStatus(text);
 }
