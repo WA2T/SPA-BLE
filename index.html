@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Smart Power Attenuator</title>
 <style>
   * { box-sizing: border-box; font-family: Arial, sans-serif; font-weight: bold; }
@@ -845,6 +845,38 @@ body .bypass-row label[for="bypass"] {
   text-align: left !important;
   vertical-align: middle !important;
 }
+
+
+  /* Dark theme: visual changes only; BLE logic and layout preserved. */
+  :root { color-scheme: dark; }
+  html { background: #15191f; }
+  body { background: #15191f; color: #f1f3f5; }
+  .current-status { background: #222832; border-color: #697586; }
+  button { background: #343d49; color: #fff; border-color: #8793a3; }
+  button:active { background: #52647a; }
+  button:disabled { opacity: .45; }
+  input[type=number] { background: #252c36; color: #fff; border-color: #8793a3; caret-color: #fff; }
+  input[type=number]:focus { outline: 2px solid #76b7ff; outline-offset: 1px; }
+  table th { background: #303946; color: #fff; }
+  table td { background: #1e252e; color: #f1f3f5; }
+  th, td { border-color: #697586; }
+  .error { color: #ff8585; }
+  .message { color: #e4eaf2; }
+  .bypass-row input { accent-color: #76b7ff; }
+  /* Override earlier disconnected-state light backgrounds. */
+  body.ble-disconnected input:disabled,
+  body.ble-disconnected .delay-section input,
+  body.ble-disconnected .delay-section input[type="number"],
+  body.ble-disconnected #delay1,
+  body.ble-disconnected #delay2 { background: #303640 !important; color: #aab4c0 !important; -webkit-text-fill-color: #aab4c0 !important; }
+  body.ble-disconnected .delay-section .stepper,
+  body.ble-disconnected .delay-section .stepper button,
+  body.ble-disconnected .delay-section .step-btn,
+  body.ble-disconnected .delay-section .step-up,
+  body.ble-disconnected .delay-section .step-down,
+  body.ble-disconnected .delay-section .num-stepper,
+  body.ble-disconnected .delay-section .stepper-up,
+  body.ble-disconnected .delay-section .stepper-down { background: #303640 !important; color: #aab4c0 !important; }
 
 </style>
 </head>
