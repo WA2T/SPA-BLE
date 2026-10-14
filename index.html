@@ -1107,6 +1107,30 @@ body .bypass-row label[for="bypass"] {
   .delay-save-layout .delay-row .row-controls {
     gap:2px !important;
   }
+  /* Keep each attenuation arrow stack anchored to the same right inset.
+     The field flexes into the remaining space; no row-specific offsets. */
+  .attenuation-grid tbody td:nth-child(2) .row-controls {
+    display:flex !important;
+    width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+    gap:2px !important;
+    align-items:center !important;
+  }
+  .attenuation-grid tbody td:nth-child(2) .row-controls input[type=number] {
+    flex:1 1 0 !important;
+    width:0 !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+  .attenuation-grid tbody td:nth-child(2) .row-controls .stepper {
+    flex:0 0 26px !important;
+    width:26px !important;
+    min-width:26px !important;
+    margin-left:auto !important;
+    margin-right:0 !important;
+    box-sizing:border-box !important;
+  }
 </style>
 </head>
 <body>
@@ -1733,8 +1757,10 @@ setBleDependentControlsEnabled(bleConnected);
       band.style.setProperty('box-sizing', 'border-box', 'important');
       band.style.setProperty('width', fieldWidth + 'px', 'important');
       value.style.setProperty('box-sizing', 'border-box', 'important');
-      value.style.setProperty('flex', '0 0 ' + fieldWidth + 'px', 'important');
-      value.style.setProperty('width', fieldWidth + 'px', 'important');
+      // Let the input flex to the available space in each row, keeping
+      // the 26px stepper anchored at the same right edge in every cell.
+      value.style.setProperty('flex', '1 1 0', 'important');
+      value.style.setProperty('width', '0', 'important');
       value.style.setProperty('min-width', '0', 'important');
     });
   }
