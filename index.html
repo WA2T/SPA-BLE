@@ -1053,6 +1053,11 @@ body .bypass-row label[for="bypass"] {
   @media (max-width:480px) and (max-height:750px) {
     body > h2, body > h2:last-of-type { font-size:21px !important; }
   }
+  /* Match table column titles to the Bypass label's inherited text size.
+     Only typography changes; cell dimensions and padding are untouched. */
+  .attenuation-grid thead th {
+    font-size: inherit !important;
+  }
 </style>
 </head>
 <body>
