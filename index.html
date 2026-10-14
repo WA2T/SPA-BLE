@@ -1070,6 +1070,43 @@ body .bypass-row label[for="bypass"] {
   .attenuation-grid thead th {
     font-size: inherit !important;
   }
+  /* 26px arrow buttons, offset by reducing the adjacent 3px gap to 1px.
+     This preserves the overall row-control width and equal Band/value widths. */
+  .attenuation-grid .row-controls { gap:1px !important; }
+  .attenuation-grid .row-controls .stepper,
+  .delay-save-layout .delay-row .stepper { flex:0 0 26px !important; width:26px !important; }
+  .attenuation-grid .row-controls .stepper button,
+  .delay-save-layout .delay-row .stepper button { width:26px !important; padding:0 !important; box-sizing:border-box !important; }
+  .delay-save-layout .delay-row .row-controls { gap:1px !important; }
+  /* Recover 2px vertically per attenuation value cell, without changing
+     table dimensions or the Band/Submit All cells. */
+  .attenuation-grid tbody td:nth-child(2) {
+    padding-top:1px !important;
+    padding-bottom:1px !important;
+  }
+  /* Share the recovered 2px equally between the up/down touch targets. */
+  .attenuation-grid .row-controls .stepper button,
+  .delay-save-layout .delay-row .stepper button {
+    height:20px !important;
+    min-height:20px !important;
+    padding:0 !important;
+  }
+  /* Reduce only the right inset of attenuation value cells, giving the
+     26px arrow stack more breathing room without changing table dimensions. */
+  .attenuation-grid tbody td:nth-child(2) {
+    padding-right:1px !important;
+    padding-left:2px !important;
+  }
+  /* Restore zero internal arrow padding. Increase external left spacing
+     between the number field and arrow stack from 1px to 2px. */
+  .attenuation-grid .row-controls .stepper button,
+  .delay-save-layout .delay-row .stepper button {
+    padding:0 !important;
+  }
+  .attenuation-grid .row-controls,
+  .delay-save-layout .delay-row .row-controls {
+    gap:2px !important;
+  }
 </style>
 </head>
 <body>
