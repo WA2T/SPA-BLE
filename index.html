@@ -864,6 +864,59 @@ body .bypass-row label[for="bypass"] {
   vertical-align: middle !important;
 }
 
+
+  /* SPA Wi-Fi dark palette; geometry and BLE logic are unchanged. */
+  html, body { background:#15191f !important; color:#f1f3f5 !important; color-scheme:dark; }
+  h1, h2, label, .status-item, .status-label, .status-value, .footer { color:#f1f3f5; }
+  .current-status { background:#1e252e; border-color:#8793a3; }
+  table { background:#1e252e; }
+  th, td { background:#1e252e; color:#f1f3f5; border-color:#8793a3; }
+  th { background:#29323e; }
+  button, .band-button, #connectionButton, #submitAllButton, #saveDelaysButton,
+  .stepper button { background:#343d49 !important; color:#f1f3f5 !important; border:1px solid #8793a3 !important; }
+  button:active:not(:disabled) { background:#465366 !important; }
+  input[type=number] { background:#252c36 !important; color:#f1f3f5 !important;
+    -webkit-text-fill-color:#f1f3f5; border:1px solid #8793a3 !important; }
+  input[type=checkbox] { accent-color:#829ab8; }
+  .error { color:#ff9999; }
+  body.ble-disconnected input:disabled,
+  body.ble-disconnected .delay-section input,
+  body.ble-disconnected #delay1,
+  body.ble-disconnected #delay2 { background:#252c36 !important; color:#a6aeb9 !important;
+    -webkit-text-fill-color:#a6aeb9 !important; opacity:.45 !important; }
+  body.ble-disconnected .delay-section .stepper,
+  body.ble-disconnected .delay-section .stepper button { background:#343d49 !important;
+    color:#a6aeb9 !important; opacity:.45 !important; }
+
+
+  /* Match Save Delays width to the right attenuation table. Reclaim the
+     required room from the PTT delay number inputs, not their labels. */
+  .delay-save-layout { width:var(--spa-controls-width, 354px); max-width:100%; gap:6px !important; }
+  .delay-save-layout .delay-fields { flex:1 1 0 !important; width:0 !important; min-width:0 !important; }
+  .delay-save-layout .delay-row { width:100% !important; min-width:0 !important; gap:3px !important; }
+  .delay-save-layout .delay-row label { flex:0 0 auto !important; min-width:0 !important; width:auto !important; white-space:nowrap; }
+  .delay-save-layout .delay-row .row-controls { display:flex !important; flex:1 1 0 !important; width:0 !important; min-width:0 !important; gap:3px !important; }
+  .delay-save-layout .delay-row input[type=number] { flex:1 1 0 !important; width:0 !important; min-width:0 !important; padding-left:1px; padding-right:1px; }
+  .delay-save-layout .delay-row .stepper { flex:0 0 24px; width:24px; }
+  .delay-save-layout .delay-row .stepper button { width:24px; }
+  .delay-save-layout #saveDelaysButton { flex:0 0 var(--spa-right-table-width, 172px) !important; width:var(--spa-right-table-width, 172px) !important; min-width:0 !important; max-width:none !important; margin:0 !important; }
+  /* Larger Band-button and attenuation-value text; arrows stay the same size. */
+  .attenuation-grid .band-button,
+  .attenuation-grid input[type=number] { font-size:19px !important; }
+  @media(max-width:480px) {
+    .delay-save-layout { width:100% !important; }
+    .attenuation-grid .band-button,
+    .attenuation-grid input[type=number] { font-size:18px !important; }
+  }
+
+  /* Text-only enlargement: retain the existing widths, heights and padding
+     of Band buttons, numeric inputs, Submit All and Save Delays. */
+  /* Match action button labels to Band buttons and attenuation values. */
+  #submitAllButton, #saveDelaysButton { font-size:19px !important; }
+  @media (max-width:480px) {
+    #submitAllButton, #saveDelaysButton { font-size:18px !important; }
+  }
+
 </style>
 </head>
 <body>
@@ -1450,6 +1503,23 @@ setBleDependentControlsEnabled(bleConnected);
       restoreSpaViewport();
     }
   }, true);
+})();
+</script>
+
+
+<script>
+/* Follow the actual rendered right-table width, including on iPhone resize. */
+(function () {
+  function sizeDelaySaveButton() {
+    var table = document.querySelector('.attenuation-panel:last-child table');
+    var delayLayout = document.querySelector('.delay-save-layout');
+    var grid = document.querySelector('.attenuation-grid');
+    if (!table || !delayLayout || !grid) return;
+    delayLayout.style.setProperty('--spa-right-table-width', table.getBoundingClientRect().width + 'px');
+    delayLayout.style.setProperty('--spa-controls-width', grid.getBoundingClientRect().width + 'px');
+  }
+  window.addEventListener('resize', sizeDelaySaveButton);
+  sizeDelaySaveButton();
 })();
 </script>
 
