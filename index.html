@@ -1560,6 +1560,13 @@ async function sendAllAttn() {
       await new Promise(resolve => setTimeout(resolve, 75));
     }
 
+    // WiFi Submit All clears the current band. Do this only after all
+    // 11 BLE SAVEATTN commands have completed successfully.
+    if (!await sendCommand('CLEARBAND')) {
+      setMessage('Attenuation values saved, but current band could not be cleared.', true);
+      return;
+    }
+
     pendingMessage = { type: 'submitAll' };
     armPendingTimeout();
     setMessage('Submitting all attenuation values...');
