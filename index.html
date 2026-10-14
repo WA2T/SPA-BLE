@@ -1044,6 +1044,15 @@ body .bypass-row label[for="bypass"] {
   @media (max-width:480px) and (max-height:750px) {
     body > h2 { font-size:21px !important; }
   }
+  /* Give both section headings identical font sizes, overriding earlier
+     PTT-only mobile rules with higher specificity. */
+  body > h2, body > h2:last-of-type { font-size:23px !important; }
+  @media (max-width:480px) {
+    body > h2, body > h2:last-of-type { font-size:22px !important; }
+  }
+  @media (max-width:480px) and (max-height:750px) {
+    body > h2, body > h2:last-of-type { font-size:21px !important; }
+  }
 </style>
 </head>
 <body>
