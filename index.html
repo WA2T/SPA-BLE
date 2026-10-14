@@ -909,14 +909,18 @@ body .bypass-row label[for="bypass"] {
     .attenuation-grid input[type=number] { font-size:18px !important; }
   }
 
-  /* Text-only enlargement: retain the existing widths, heights and padding
-     of Band buttons, numeric inputs, Submit All and Save Delays. */
-  /* Match action button labels to Band buttons and attenuation values. */
-  #submitAllButton, #saveDelaysButton { font-size:19px !important; }
+  /* Match action button text to the enlarged field text, without resizing controls. */
+  /* Typography-only adjustment: do not alter control box dimensions. */
+  .attenuation-grid .band-button,
+  .attenuation-grid input[type=number],
+  .delay-save-layout input[type=number],
+  #submitAllButton, #saveDelaysButton { font-size:21px !important; }
   @media (max-width:480px) {
-    #submitAllButton, #saveDelaysButton { font-size:18px !important; }
+    .attenuation-grid .band-button,
+    .attenuation-grid input[type=number],
+    .delay-save-layout input[type=number],
+    #submitAllButton, #saveDelaysButton { font-size:20px !important; }
   }
-
 </style>
 </head>
 <body>
