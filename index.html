@@ -1128,9 +1128,11 @@ body .bypass-row label[for="bypass"] {
     width:26px !important;
     min-width:26px !important;
     margin-left:auto !important;
-    margin-right:0 !important;
+    margin-right:1px !important;
     box-sizing:border-box !important;
   }
+  /* Add 1px outside the right edge of PTT delay arrow stacks as well. */
+  .delay-save-layout .delay-row .stepper { margin-right:1px !important; }
 </style>
 </head>
 <body>
@@ -1747,7 +1749,8 @@ setBleDependentControlsEnabled(bleConnected);
       var arrowWidth = stepper.getBoundingClientRect().width;
       var tableWidth = table.getBoundingClientRect().width;
       var borders = px(css.borderLeftWidth) + px(css.borderRightWidth) + 2;
-      var usable = tableWidth - borders - bandInset - valueInset - gap - arrowWidth;
+      var arrowRightGap = px(window.getComputedStyle(stepper).marginRight);
+      var usable = tableWidth - borders - bandInset - valueInset - gap - arrowWidth - arrowRightGap;
       var fieldWidth = Math.max(28, Math.floor(usable / 2));
       var bandColumn = fieldWidth + bandInset;
       var valueColumn = tableWidth - borders - bandColumn;
