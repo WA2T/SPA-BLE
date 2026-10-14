@@ -922,40 +922,41 @@ body .bypass-row label[for="bypass"] {
     .delay-save-layout input[type=number],
     #submitAllButton, #saveDelaysButton { font-size:20px !important; }
   }
-  /* Submit All is a genuine sixth table row, fully inset within its cell.
-     Match the row's height to the band rows without external offsets. */
+
+  /* Submit All is the sixth row inside the right table. */
   .attenuation-grid .submit-table-row td {
-    padding: 3px 4px !important;
-    text-align: center !important;
-    vertical-align: middle !important;
-    overflow: visible !important;
-    width: auto !important;
-    max-width: none !important;
+    box-sizing:border-box !important;
+    padding:3px 4px !important;
+    width:auto !important;
+    max-width:none !important;
+    overflow:visible !important;
+    text-align:center !important;
+    vertical-align:middle !important;
   }
   .attenuation-grid .submit-table-row #submitAllButton {
-    display: block !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    transform: none !important;
-    height: 40px !important;
-    min-height: 40px !important;
-    max-height: 40px !important;
-    line-height: normal !important;
-    padding: 0 4px !important;
+    display:block !important;
+    box-sizing:border-box !important;
+    width:100% !important;
+    height:40px !important;
+    min-height:40px !important;
+    max-height:40px !important;
+    margin:0 !important;
+    padding:0 4px !important;
+    line-height:normal !important;
+    transform:none !important;
   }
   @media (max-width:480px) {
     .attenuation-grid .submit-table-row #submitAllButton {
-      height: 44px !important;
-      min-height: 44px !important;
-      max-height: 44px !important;
+      height:44px !important;
+      min-height:44px !important;
+      max-height:44px !important;
     }
   }
   @media (max-width:480px) and (max-height:750px) {
     .attenuation-grid .submit-table-row #submitAllButton {
-      height: 42px !important;
-      min-height: 42px !important;
-      max-height: 42px !important;
+      height:42px !important;
+      min-height:42px !important;
+      max-height:42px !important;
     }
   }
 </style>
@@ -993,6 +994,7 @@ body .bypass-row label[for="bypass"] {
       <colgroup><col style="width:calc((100% - 28px) / 2)"><col></colgroup>
       <thead><tr><th>Band</th><th>Attn (dB)</th></tr></thead>
       <tbody id="bandTableRight"></tbody>
+      <tfoot><tr class="submit-table-row"><td colspan="2"><button type="button" id="submitAllButton" disabled>Submit All</button></td></tr></tfoot>
     </table>
   </div>
 </div>
@@ -1184,12 +1186,6 @@ function buildBandTable() {
       }
     });
   });
-
-  // Sixth row of the right table, matching the sixth band row on the left.
-  const submitRow = document.createElement('tr');
-  submitRow.className = 'submit-table-row';
-  submitRow.innerHTML = '<td colspan="2"><button type="button" id="submitAllButton" disabled>Submit All</button></td>';
-  rightBody.appendChild(submitRow);
 }
 
 function stepAttn(index, amount) {
