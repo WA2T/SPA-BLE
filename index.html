@@ -1539,6 +1539,9 @@ async function sendAllAttn() {
 
   const button = $('submitAllButton');
   button.disabled = true;
+  // Prevent periodic GET requests from replacing commands in the ESP32's
+  // single pending BLE command slot during this multi-command operation.
+  stopStatusPolling();
 
   try {
     const allValues = [];
@@ -1567,12 +1570,15 @@ async function sendAllAttn() {
       return;
     }
 
+    // Allow the ESP32 loop to consume CLEARBAND before requesting status.
+    await new Promise(resolve => setTimeout(resolve, 200));
     pendingMessage = { type: 'submitAll' };
     armPendingTimeout();
     setMessage('Submitting all attenuation values...');
     await sendCommand('GET');
   } finally {
     button.disabled = !commandCharacteristic;
+    if (commandCharacteristic) startStatusPolling();
   }
 }
 
