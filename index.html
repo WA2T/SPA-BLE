@@ -1514,7 +1514,25 @@ setBleDependentControlsEnabled(bleConnected);
 <script>
 /* Follow the actual rendered right-table width, including on iPhone resize. */
 (function () {
+  function equalizeBandAndValueFields() {
+    document.querySelectorAll('.attenuation-panel table').forEach(function(table) {
+      var firstCol = table.querySelector('col:first-child');
+      var band = table.querySelector('.band-button');
+      var value = table.querySelector('input[type=number]');
+      if (!firstCol || !band || !value) return;
+      // Compare the rendered OUTER widths of the actual controls, not the
+      // table columns. The arrow stepper is deliberately excluded.
+      // Correct for cell padding, borders and responsive viewport rounding.
+      for (var i = 0; i < 3; i++) {
+        var difference = band.getBoundingClientRect().width - value.getBoundingClientRect().width;
+        if (Math.abs(difference) < 0.5) break;
+        var currentWidth = firstCol.getBoundingClientRect().width;
+        firstCol.style.setProperty('width', (currentWidth - difference / 2) + 'px', 'important');
+      }
+    });
+  }
   function sizeDelaySaveButton() {
+    equalizeBandAndValueFields();
     var table = document.querySelector('.attenuation-panel:last-child table');
     var delayLayout = document.querySelector('.delay-save-layout');
     var grid = document.querySelector('.attenuation-grid');
