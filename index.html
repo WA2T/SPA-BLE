@@ -994,6 +994,12 @@ body .bypass-row label[for="bypass"] {
   }
   .attenuation-grid .stepper button,
   .delay-save-layout .stepper button { padding:0 !important; }
+  /* Match the up/down arrow button padding to Band buttons and number fields. */
+  .attenuation-grid .stepper button,
+  .delay-save-layout .stepper button {
+    box-sizing:border-box !important;
+    padding:1px !important;
+  }
   /* Matching 1px internal padding on all four sides of Band buttons
      and attenuation number fields; retain their existing outer sizes. */
   .attenuation-grid .band-button,
