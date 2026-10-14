@@ -1590,8 +1590,52 @@ setBleDependentControlsEnabled(bleConnected);
       value.style.setProperty('min-width', '0', 'important');
     });
   }
+  function matchTableBottomEdges() {
+    const leftTable = document.querySelector('.attenuation-panel:first-child table');
+    const rightTable = document.querySelector('.attenuation-panel:last-child table');
+    const submitRow = rightTable && rightTable.querySelector('.submit-table-row');
+    const submitButton = document.getElementById('submitAllButton');
+    const leftRows = leftTable && leftTable.querySelectorAll('tbody tr');
+    const rightRows = rightTable && rightTable.querySelectorAll('tbody tr');
+    if (!leftRows || !rightRows || !submitRow || !submitButton || leftRows.length !== 6) return;
+
+    // Give every corresponding row the same measured height. A fixed height
+    // on the button alone is insufficient because the enclosing cell has
+    // padding/borders and mobile font overrides.
+    for (let i = 0; i < rightRows.length; i++) {
+      leftRows[i].style.removeProperty('height');
+      rightRows[i].style.removeProperty('height');
+    }
+    submitRow.style.removeProperty('height');
+    submitButton.style.removeProperty('height');
+    submitButton.style.removeProperty('min-height');
+    submitButton.style.removeProperty('max-height');
+
+    const leftBandButton = leftRows[5].querySelector('.band-button');
+    const buttonHeight = leftBandButton.getBoundingClientRect().height;
+    // Identical physical button heights, including on short iPhone screens.
+    for (const prop of ['height', 'min-height', 'max-height']) {
+      submitButton.style.setProperty(prop, buttonHeight + 'px', 'important');
+    }
+    // Ensure the submit row has exactly the same cell padding as the left row.
+    const sourceCell = leftRows[5].cells[0];
+    const submitCell = submitRow.cells[0];
+    const style = getComputedStyle(sourceCell);
+    submitCell.style.setProperty('padding-top', style.paddingTop, 'important');
+    submitCell.style.setProperty('padding-bottom', style.paddingBottom, 'important');
+    const leftHeight = leftRows[5].getBoundingClientRect().height;
+    submitRow.style.setProperty('height', leftHeight + 'px', 'important');
+    // Equalize the five common band rows too, avoiding cumulative drift.
+    for (let i = 0; i < rightRows.length; i++) {
+      const h = Math.max(leftRows[i].getBoundingClientRect().height,
+                         rightRows[i].getBoundingClientRect().height);
+      leftRows[i].style.setProperty('height', h + 'px');
+      rightRows[i].style.setProperty('height', h + 'px');
+    }
+  }
   function sizeDelaySaveButton() {
     equalizeBandAndValueFields();
+    matchTableBottomEdges();
     var table = document.querySelector('.attenuation-panel:last-child table');
     var delayLayout = document.querySelector('.delay-save-layout');
     var grid = document.querySelector('.attenuation-grid');
