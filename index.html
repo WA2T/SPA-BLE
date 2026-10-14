@@ -833,6 +833,7 @@ body.ble-disconnected .delay-section .stepper {
   .attenuation-grid td:nth-child(2) { width:auto; max-width:none; }
   .attenuation-grid td:nth-child(2) { padding-left:2px !important; padding-right:3px !important; }
   .attenuation-grid .row-controls { width:100%; min-width:0; gap:3px; }
+  .attenuation-grid td:first-child { text-align:center; }
   .attenuation-grid .row-controls input[type=number] {
     flex:1 1 0; width:0; min-width:0; padding-left:2px; padding-right:2px;
   }
@@ -1516,19 +1517,42 @@ setBleDependentControlsEnabled(bleConnected);
 (function () {
   function equalizeBandAndValueFields() {
     document.querySelectorAll('.attenuation-panel table').forEach(function(table) {
-      var firstCol = table.querySelector('col:first-child');
+      var cols = table.querySelectorAll('col');
       var band = table.querySelector('.band-button');
       var value = table.querySelector('input[type=number]');
-      if (!firstCol || !band || !value) return;
-      // Compare the rendered OUTER widths of the actual controls, not the
-      // table columns. The arrow stepper is deliberately excluded.
-      // Correct for cell padding, borders and responsive viewport rounding.
-      for (var i = 0; i < 3; i++) {
-        var difference = band.getBoundingClientRect().width - value.getBoundingClientRect().width;
-        if (Math.abs(difference) < 0.5) break;
-        var currentWidth = firstCol.getBoundingClientRect().width;
-        firstCol.style.setProperty('width', (currentWidth - difference / 2) + 'px', 'important');
-      }
+      var bandCell = band && band.closest('td');
+      var valueCell = value && value.closest('td');
+      var controls = value && value.closest('.row-controls');
+      var stepper = controls && controls.querySelector('.stepper');
+      if (cols.length !== 2 || !bandCell || !valueCell || !stepper) return;
+
+      // Explicitly divide the space usable by the two controls in half.
+      // The arrow stack, its gap, table borders and cell padding are
+      // subtracted BEFORE calculating either control's width.
+      var css = window.getComputedStyle(table);
+      var bc = window.getComputedStyle(bandCell);
+      var vc = window.getComputedStyle(valueCell);
+      var rc = window.getComputedStyle(controls);
+      var px = function(v) { return parseFloat(v) || 0; };
+      var bandInset = px(bc.paddingLeft) + px(bc.paddingRight);
+      var valueInset = px(vc.paddingLeft) + px(vc.paddingRight);
+      var gap = px(rc.columnGap || rc.gap);
+      var arrowWidth = stepper.getBoundingClientRect().width;
+      var tableWidth = table.getBoundingClientRect().width;
+      var borders = px(css.borderLeftWidth) + px(css.borderRightWidth) + 2;
+      var usable = tableWidth - borders - bandInset - valueInset - gap - arrowWidth;
+      var fieldWidth = Math.max(28, Math.floor(usable / 2));
+      var bandColumn = fieldWidth + bandInset;
+      var valueColumn = tableWidth - borders - bandColumn;
+
+      cols[0].style.setProperty('width', bandColumn + 'px', 'important');
+      cols[1].style.setProperty('width', valueColumn + 'px', 'important');
+      band.style.setProperty('box-sizing', 'border-box', 'important');
+      band.style.setProperty('width', fieldWidth + 'px', 'important');
+      value.style.setProperty('box-sizing', 'border-box', 'important');
+      value.style.setProperty('flex', '0 0 ' + fieldWidth + 'px', 'important');
+      value.style.setProperty('width', fieldWidth + 'px', 'important');
+      value.style.setProperty('min-width', '0', 'important');
     });
   }
   function sizeDelaySaveButton() {
