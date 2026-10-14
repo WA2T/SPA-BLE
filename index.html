@@ -994,15 +994,39 @@ body .bypass-row label[for="bypass"] {
   }
   .attenuation-grid .stepper button,
   .delay-save-layout .stepper button { padding:0 !important; }
-  /* Explicitly give Band buttons and attenuation number fields identical
-     internal padding, overriding older device-specific rules. */
+  /* Matching 1px internal padding on all four sides of Band buttons
+     and attenuation number fields; retain their existing outer sizes. */
   .attenuation-grid .band-button,
   .attenuation-grid input[type="number"] {
-    padding-top:3px !important;
-    padding-bottom:3px !important;
-    padding-left:3px !important;
-    padding-right:3px !important;
+    padding:1px !important;
     box-sizing:border-box !important;
+  }
+  /* Give Band buttons and attenuation number fields exactly the same
+     OUTER height, not merely the same internal padding. */
+  .attenuation-grid .band-button,
+  .attenuation-grid .row-controls input[type="number"] {
+    box-sizing:border-box !important;
+    height:40px !important;
+    min-height:40px !important;
+    max-height:40px !important;
+    padding:1px !important;
+    margin:0 !important;
+  }
+  @media (max-width:480px) {
+    .attenuation-grid .band-button,
+    .attenuation-grid .row-controls input[type="number"] {
+      height:44px !important;
+      min-height:44px !important;
+      max-height:44px !important;
+    }
+  }
+  @media (max-width:480px) and (max-height:750px) {
+    .attenuation-grid .band-button,
+    .attenuation-grid .row-controls input[type="number"] {
+      height:42px !important;
+      min-height:42px !important;
+      max-height:42px !important;
+    }
   }
   /* Reduce only the horizontal gap between status box and BLE Connect. */
   .status-connect-row { column-gap:5px !important; }
