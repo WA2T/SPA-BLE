@@ -926,7 +926,7 @@ body .bypass-row label[for="bypass"] {
   /* Submit All is the sixth row inside the right table. */
   .attenuation-grid .submit-table-row td {
     box-sizing:border-box !important;
-    padding:3px 4px !important;
+    padding:5px 2px !important;
     width:auto !important;
     max-width:none !important;
     overflow:visible !important;
@@ -959,6 +959,53 @@ body .bypass-row label[for="bypass"] {
       max-height:42px !important;
     }
   }
+  /* Balance the PTT heading between the attenuation tables and delay fields.
+     Transfer existing margin from below to above; preserve their combined height. */
+  body > h2:last-of-type { margin-top:15px !important; margin-bottom:8px !important; }
+  @media (max-width:480px) {
+    body > h2:last-of-type { margin-top:10px !important; margin-bottom:10px !important; }
+  }
+  @media (max-width:480px) and (max-height:750px) {
+    body > h2:last-of-type { margin-top:8px !important; margin-bottom:7px !important; }
+  }
+  /* Slightly enlarge only the Smart Power Attenuator title. */
+  body > h1 { font-size:28px !important; }
+  @media (max-width:480px) {
+    body > h1 { font-size:32px !important; }
+  }
+  @media (max-width:480px) and (max-height:750px) {
+    body > h1 { font-size:30px !important; }
+  }
+  /* Compact padding, using the Band cells as the reference rather than
+     spreading the larger Submit All inset to every control. */
+  .attenuation-grid tbody td,
+  .attenuation-grid tfoot td {
+    padding:2px !important;
+    vertical-align:middle !important;
+  }
+  .attenuation-grid .band-button,
+  .attenuation-grid #submitAllButton,
+  .attenuation-grid input[type=number],
+  .delay-save-layout input[type=number],
+  .delay-save-layout #saveDelaysButton,
+  #connectionButton {
+    box-sizing:border-box !important;
+    padding:0 3px !important;
+  }
+  .attenuation-grid .stepper button,
+  .delay-save-layout .stepper button { padding:0 !important; }
+  /* Explicitly give Band buttons and attenuation number fields identical
+     internal padding, overriding older device-specific rules. */
+  .attenuation-grid .band-button,
+  .attenuation-grid input[type="number"] {
+    padding-top:3px !important;
+    padding-bottom:3px !important;
+    padding-left:3px !important;
+    padding-right:3px !important;
+    box-sizing:border-box !important;
+  }
+  /* Reduce only the horizontal gap between status box and BLE Connect. */
+  .status-connect-row { column-gap:5px !important; }
 </style>
 </head>
 <body>
@@ -1621,8 +1668,9 @@ setBleDependentControlsEnabled(bleConnected);
     const sourceCell = leftRows[5].cells[0];
     const submitCell = submitRow.cells[0];
     const style = getComputedStyle(sourceCell);
-    submitCell.style.setProperty('padding-top', style.paddingTop, 'important');
-    submitCell.style.setProperty('padding-bottom', style.paddingBottom, 'important');
+    for (const side of ['top', 'right', 'bottom', 'left']) {
+      submitCell.style.setProperty('padding-' + side, style.getPropertyValue('padding-' + side), 'important');
+    }
     const leftHeight = leftRows[5].getBoundingClientRect().height;
     submitRow.style.setProperty('height', leftHeight + 'px', 'important');
     // Equalize the five common band rows too, avoiding cumulative drift.
