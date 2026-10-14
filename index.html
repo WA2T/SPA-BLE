@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Smart Power Attenuator</title>
 <style>
   * { box-sizing: border-box; font-family: Arial, sans-serif; font-weight: bold; }
@@ -821,6 +821,24 @@ body.ble-disconnected .delay-section .stepper {
 
 
 
+  /* Equal usable widths for Band buttons and attenuation NUMBER fields.
+     Arrow buttons are additional space, outside the 50/50 split.
+     Keep the table and two-panel widths unchanged. */
+  .attenuation-grid table { table-layout:fixed; }
+  .attenuation-grid col:first-child { width:calc((100% - 28px) / 2) !important; }
+  .attenuation-grid col:last-child { width:auto !important; }
+  .attenuation-grid th:first-child,
+  .attenuation-grid td:first-child { width:auto; max-width:none; padding-left:2px; padding-right:2px; }
+  .attenuation-grid th:nth-child(2),
+  .attenuation-grid td:nth-child(2) { width:auto; max-width:none; }
+  .attenuation-grid td:nth-child(2) { padding-left:2px !important; padding-right:3px !important; }
+  .attenuation-grid .row-controls { width:100%; min-width:0; gap:3px; }
+  .attenuation-grid .row-controls input[type=number] {
+    flex:1 1 0; width:0; min-width:0; padding-left:2px; padding-right:2px;
+  }
+  .attenuation-grid .row-controls .stepper { flex:0 0 24px; width:24px; }
+  .attenuation-grid .row-controls .stepper button { width:24px; }
+
 /* Bypass: original left-justified checkbox and label. */
 body .bypass-row {
   display: block !important;
@@ -846,38 +864,6 @@ body .bypass-row label[for="bypass"] {
   vertical-align: middle !important;
 }
 
-
-  /* Dark theme: visual changes only; BLE logic and layout preserved. */
-  :root { color-scheme: dark; }
-  html { background: #15191f; }
-  body { background: #15191f; color: #f1f3f5; }
-  .current-status { background: #222832; border-color: #697586; }
-  button { background: #343d49; color: #fff; border-color: #8793a3; }
-  button:active { background: #52647a; }
-  button:disabled { opacity: .45; }
-  input[type=number] { background: #252c36; color: #fff; border-color: #8793a3; caret-color: #fff; }
-  input[type=number]:focus { outline: 2px solid #76b7ff; outline-offset: 1px; }
-  table th { background: #303946; color: #fff; }
-  table td { background: #1e252e; color: #f1f3f5; }
-  th, td { border-color: #697586; }
-  .error { color: #ff8585; }
-  .message { color: #e4eaf2; }
-  .bypass-row input { accent-color: #76b7ff; }
-  /* Override earlier disconnected-state light backgrounds. */
-  body.ble-disconnected input:disabled,
-  body.ble-disconnected .delay-section input,
-  body.ble-disconnected .delay-section input[type="number"],
-  body.ble-disconnected #delay1,
-  body.ble-disconnected #delay2 { background: #303640 !important; color: #aab4c0 !important; -webkit-text-fill-color: #aab4c0 !important; }
-  body.ble-disconnected .delay-section .stepper,
-  body.ble-disconnected .delay-section .stepper button,
-  body.ble-disconnected .delay-section .step-btn,
-  body.ble-disconnected .delay-section .step-up,
-  body.ble-disconnected .delay-section .step-down,
-  body.ble-disconnected .delay-section .num-stepper,
-  body.ble-disconnected .delay-section .stepper-up,
-  body.ble-disconnected .delay-section .stepper-down { background: #303640 !important; color: #aab4c0 !important; }
-
 </style>
 </head>
 <body>
@@ -902,7 +888,7 @@ body .bypass-row label[for="bypass"] {
 <div class="attenuation-grid">
   <div class="attenuation-panel">
     <table>
-      <colgroup><col style="width:64px"><col style="width:108px"></colgroup>
+      <colgroup><col style="width:calc((100% - 28px) / 2)"><col></colgroup>
       <thead><tr><th>Band</th><th>Attn (dB)</th></tr></thead>
       <tbody id="bandTableLeft"></tbody>
     </table>
@@ -910,7 +896,7 @@ body .bypass-row label[for="bypass"] {
 
   <div class="attenuation-panel">
     <table>
-      <colgroup><col style="width:64px"><col style="width:108px"></colgroup>
+      <colgroup><col style="width:calc((100% - 28px) / 2)"><col></colgroup>
       <thead><tr><th>Band</th><th>Attn (dB)</th></tr></thead>
       <tbody id="bandTableRight"></tbody>
     </table>
@@ -959,7 +945,7 @@ function setBleDependentControlsEnabled(enabled) {
   // All controls that send commands to SPA require an active BLE connection.
   document.querySelectorAll(
     '.attenuation-grid input, .attenuation-grid button, ' +
-    '.bypass-row input, .delay-save-layout input, .delay-save-layout .stepper button, ' +
+    '.bypass-row input, .delay-section input, .delay-section button, ' +
     '.delay-section .stepper, .delay-section .step-btn, .delay-section .step-up, ' +
     '.delay-section .step-down, .delay-section .num-stepper, ' +
     '.delay-section .stepper-up, .delay-section .stepper-down, ' +
@@ -983,11 +969,6 @@ let server = null;
 let commandCharacteristic = null;
 let statusCharacteristic = null;
 let statusPollTimer = null;
-let lastStatusReceivedAt = 0;
-let consecutiveWriteFailures = 0;
-let statusRequestInFlight = false;
-const STATUS_TIMEOUT_MS = 8000;
-const MAX_WRITE_FAILURES = 3;
 let pendingMessage = null;
 let messageClearTimer = null;
 let pendingTimeoutTimer = null;
@@ -1164,8 +1145,6 @@ async function connectBLE() {
     await statusCharacteristic.startNotifications();
     statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
 
-    lastStatusReceivedAt = Date.now();
-    consecutiveWriteFailures = 0;
     setConnected(true);
     startStatusPolling();
   } catch (err) {
@@ -1176,9 +1155,6 @@ async function connectBLE() {
 
 function disconnected() {
   stopStatusPolling();
-  lastStatusReceivedAt = 0;
-  consecutiveWriteFailures = 0;
-  statusRequestInFlight = false;
   pendingMessage = null;
   setConnected(false);
   commandCharacteristic = null;
@@ -1208,24 +1184,8 @@ function stopStatusPolling() {
 }
 
 async function requestStatus() {
-  if (!bleConnected) return;
-  if (!device || !device.gatt || !device.gatt.connected ||
-      !server || !server.connected) {
-    disconnected();
-    return;
-  }
-  // A successful BLE write alone does not prove the ESP32 is still responding.
-  // The firmware answers every GET with a status notification.
-  if (lastStatusReceivedAt && Date.now() - lastStatusReceivedAt > STATUS_TIMEOUT_MS) {
-    disconnectBLE();
-    return;
-  }
-  if (statusRequestInFlight) return;
-  statusRequestInFlight = true;
-  try {
+  if (commandCharacteristic) {
     await sendCommand('GET');
-  } finally {
-    statusRequestInFlight = false;
   }
 }
 
@@ -1241,16 +1201,9 @@ async function sendCommand(command) {
     } else {
       await commandCharacteristic.writeValue(data);
     }
-    consecutiveWriteFailures = 0;
     return true;
   } catch (err) {
-    consecutiveWriteFailures++;
-    if (consecutiveWriteFailures >= MAX_WRITE_FAILURES ||
-        !device || !device.gatt || !device.gatt.connected) {
-      disconnectBLE();
-    } else {
-      setMessage('BLE write failed: ' + err.message, true);
-    }
+    setMessage('BLE write failed: ' + err.message, true);
     return false;
   }
 }
@@ -1293,9 +1246,6 @@ function parseStatus(text) {
 }
 
 function handleStatusNotification(event) {
-  if (!bleConnected) return;
-  lastStatusReceivedAt = Date.now();
-  consecutiveWriteFailures = 0;
   const text = new TextDecoder().decode(event.target.value);
   parseStatus(text);
 }
