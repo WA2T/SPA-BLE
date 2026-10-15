@@ -1040,11 +1040,10 @@ body .bypass-row label[for="bypass"] {
       max-height:42px !important;
     }
   }
-  /* Give BLE Connect / Connected more breathing room around its text,
-     without changing its height or the 5px gap to the status panel. */
+  /* Equal spacing around BLE Connect / Connected text on all four sides. */
   .status-connect-row #connectionButton {
-    padding-left:12px !important;
-    padding-right:12px !important;
+    box-sizing:border-box !important;
+    padding:10px !important;
   }
   /* Reduce only the horizontal gap between status box and BLE Connect. */
   .status-connect-row { column-gap:5px !important; }
