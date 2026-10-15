@@ -1236,6 +1236,9 @@ let server = null;
 let commandCharacteristic = null;
 let statusCharacteristic = null;
 let statusPollTimer = null;
+let bleWatchdogTimer = null;
+let lastStatusReceivedAt = 0;
+const BLE_STATUS_TIMEOUT_MS = 7000;
 let pendingMessage = null;
 let messageClearTimer = null;
 let pendingTimeoutTimer = null;
@@ -1413,6 +1416,8 @@ async function connectBLE() {
     statusCharacteristic.addEventListener('characteristicvaluechanged', handleStatusNotification);
 
     setConnected(true);
+    lastStatusReceivedAt = Date.now();
+    startBleWatchdog();
     startStatusPolling();
   } catch (err) {
     setConnected(false);
@@ -1422,6 +1427,8 @@ async function connectBLE() {
 
 function disconnected() {
   stopStatusPolling();
+  stopBleWatchdog();
+  lastStatusReceivedAt = 0;
   pendingMessage = null;
   setConnected(false);
   commandCharacteristic = null;
@@ -1435,6 +1442,28 @@ async function disconnectBLE() {
     if (device && device.gatt && device.gatt.connected) device.gatt.disconnect();
   } catch (err) {}
   disconnected();
+}
+
+function startBleWatchdog() {
+  stopBleWatchdog();
+  bleWatchdogTimer = setInterval(() => {
+    if (!bleConnected) return;
+    if (!device || !device.gatt || !device.gatt.connected ||
+        (lastStatusReceivedAt && Date.now() - lastStatusReceivedAt > BLE_STATUS_TIMEOUT_MS)) {
+      // A powered-off/rebooted ESP32 may not immediately raise the browser
+      // gattserverdisconnected event. Missing notifications detect this case.
+      try { if (device && device.gatt && device.gatt.connected) device.gatt.disconnect(); } catch (_) {}
+      disconnected();
+      setMessage('SPA-BLE connection lost. Tap BLE Connect to reconnect.', true);
+    }
+  }, 1000);
+}
+
+function stopBleWatchdog() {
+  if (bleWatchdogTimer !== null) {
+    clearInterval(bleWatchdogTimer);
+    bleWatchdogTimer = null;
+  }
 }
 
 function startStatusPolling() {
@@ -1513,6 +1542,8 @@ function parseStatus(text) {
 }
 
 function handleStatusNotification(event) {
+  if (!bleConnected) return;
+  lastStatusReceivedAt = Date.now();
   const text = new TextDecoder().decode(event.target.value);
   parseStatus(text);
 }
