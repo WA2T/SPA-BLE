@@ -1040,10 +1040,18 @@ body .bypass-row label[for="bypass"] {
       max-height:42px !important;
     }
   }
-  /* Equal spacing around BLE Connect / Connected text on all four sides. */
+  /* Match the status box height while keeping equal effective text-to-edge
+     spacing horizontally and vertically. JS sets --ble-side-padding based on
+     the actual rendered status box height and button text line height. */
   .status-connect-row #connectionButton {
     box-sizing:border-box !important;
-    padding:10px !important;
+    align-self:stretch !important;
+    height:auto !important;
+    min-height:0 !important;
+    padding:0 var(--ble-side-padding, 12px) !important;
+    line-height:1.2 !important;
+    white-space:nowrap !important;
+    flex:0 0 auto !important;
   }
   /* Reduce only the horizontal gap between status box and BLE Connect. */
   .status-connect-row { column-gap:5px !important; }
@@ -1145,6 +1153,31 @@ body .bypass-row label[for="bypass"] {
   <button id="connectionButton">BLE Connect</button>
 </div>
 
+
+<script>
+/* Keep BLE button exactly as tall as the adjacent status box. Set side
+   padding to its effective vertical text inset (including the border). */
+(function () {
+  const statusBox = document.querySelector('.status-connect-row .current-status');
+  const button = document.getElementById('connectionButton');
+  if (!statusBox || !button) return;
+  function syncConnectButtonPadding() {
+    const height = statusBox.getBoundingClientRect().height;
+    const style = getComputedStyle(button);
+    const fontSize = parseFloat(style.fontSize) || 16;
+    const lineHeight = parseFloat(style.lineHeight) || fontSize * 1.2;
+    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+    // Side padding + border should equal the effective vertical text inset.
+    const sidePadding = Math.max(0, (height - lineHeight) / 2 - borderLeft);
+    button.style.setProperty('--ble-side-padding', sidePadding.toFixed(1) + 'px');
+  }
+  syncConnectButtonPadding();
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncConnectButtonPadding).observe(statusBox);
+  }
+  window.addEventListener('resize', syncConnectButtonPadding);
+})();
+</script>
 
 <h2>TX Attenuation by Band (0 - 15 dB)</h2>
 
