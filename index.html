@@ -1158,6 +1158,13 @@ body .bypass-row label[for="bypass"] {
     transform:scaleX(1.9);
     transform-origin:center;
   }
+  /* Narrow attenuation number boxes by 4px while keeping arrow stacks
+     anchored to the right edge of each cell. Delay boxes track these widths. */
+  .attenuation-grid tbody td:nth-child(2) .row-controls input[type=number] {
+    flex:0 1 calc(100% - 40px) !important;
+    width:calc(100% - 40px) !important;
+    min-width:0 !important;
+  }
   /* Match PTT delay controls to the wider attenuation arrow treatment.
      Only transfer 8px from each delay number input to its arrow stack. */
   .delay-save-layout .delay-row .row-controls .stepper {
@@ -1258,6 +1265,70 @@ body .bypass-row label[for="bypass"] {
     padding-right:3px !important;
     font-size:clamp(12px, 3.6vw, 17px) !important;
     white-space:nowrap !important;
+  }
+
+  /* Align both PTT numeric inputs with the attenuation inputs above.
+     Reserve the remaining horizontal space for Save Delays. */
+  .delay-save-layout { flex-wrap:nowrap !important; width:var(--spa-controls-width, 354px) !important; max-width:100% !important; gap:4px !important; }
+  .delay-save-layout .delay-fields {
+    flex:0 0 var(--spa-delay-fields-width, 180px) !important;
+    width:var(--spa-delay-fields-width, 180px) !important;
+    min-width:0 !important; max-width:none !important;
+  }
+  .delay-save-layout .delay-row { display:flex !important; flex-wrap:nowrap !important; width:100% !important; gap:0 !important; }
+  .delay-save-layout .delay-row label {
+    box-sizing:border-box !important;
+    flex:0 0 var(--spa-delay-label-width, 92px) !important;
+    width:var(--spa-delay-label-width, 92px) !important;
+    min-width:0 !important;
+    padding-right:2px !important;
+    white-space:nowrap !important;
+  }
+  .delay-save-layout .delay-row .row-controls {
+    flex:0 0 auto !important; width:auto !important; min-width:0 !important;
+    gap:1px !important;
+  }
+  .delay-save-layout #saveDelaysButton {
+    flex:1 1 0 !important; width:0 !important; min-width:0 !important;
+    max-width:none !important; box-sizing:border-box !important;
+    white-space:nowrap !important; font-size:clamp(11px, 3.4vw, 17px) !important;
+    padding-left:2px !important; padding-right:2px !important;
+  }
+  /* PTT label text fits its allotted space; the Save Delays button
+     exactly occupies the right-hand attenuation-table column. */
+  .delay-save-layout {
+    position:relative !important;
+    padding-right:calc(var(--spa-right-table-width, 172px) + 4px) !important;
+    box-sizing:border-box !important;
+  }
+  .delay-save-layout .delay-row label {
+    font-size:clamp(11px, 3.1vw, 14px) !important;
+    letter-spacing:-0.3px;
+    overflow:visible;
+  }
+  .delay-save-layout #saveDelaysButton {
+    position:absolute !important;
+    top:0 !important;
+    bottom:0 !important;
+    right:0 !important;
+    left:auto !important;
+    flex:none !important;
+    width:var(--spa-right-table-width, 172px) !important;
+    min-width:0 !important;
+    height:100% !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+  }
+  /* Preserve the original tight 1px spacing immediately before each
+     arrow stack.  The matching PTT input-width logic remains unchanged. */
+  .attenuation-grid tbody td:nth-child(2) .row-controls .stepper,
+  .delay-save-layout .delay-row .row-controls .stepper {
+    margin-left:0 !important;
+  }
+  .attenuation-grid tbody td:nth-child(2) .row-controls,
+  .delay-save-layout .delay-row .row-controls {
+    column-gap:1px !important;
+    gap:1px !important;
   }
 </style>
 </head>
@@ -2022,7 +2093,26 @@ setBleDependentControlsEnabled(bleConnected);
     var attenuationInput = document.querySelector('.attenuation-grid tbody td:nth-child(2) input[type=number]');
     if (attenuationInput) {
       var width = attenuationInput.getBoundingClientRect().width;
-      if (width > 0) delayLayout.style.setProperty('--spa-atten-input-width', width + 'px');
+      if (width > 0) {
+        delayLayout.style.setProperty('--spa-atten-input-width', width + 'px');
+        // Force BOTH PTT numeric inputs to the measured, visible attenuation
+        // input width; older flex rules must not squeeze either input.
+        delayLayout.querySelectorAll('.delay-row input[type=number]').forEach(function(input) {
+          input.style.setProperty('box-sizing', 'border-box', 'important');
+          input.style.setProperty('flex', '0 0 ' + width + 'px', 'important');
+          input.style.setProperty('width', width + 'px', 'important');
+          input.style.setProperty('min-width', width + 'px', 'important');
+          input.style.setProperty('max-width', width + 'px', 'important');
+        });
+        // Match the left edge of the attenuation number boxes exactly.
+        var inputLeft = attenuationInput.getBoundingClientRect().left;
+        var layoutLeft = delayLayout.getBoundingClientRect().left;
+        var labelWidth = Math.max(0, inputLeft - layoutLeft);
+        delayLayout.style.setProperty('--spa-delay-label-width', labelWidth + 'px');
+        var stepper = delayLayout.querySelector('.delay-row .stepper');
+        var arrowWidth = stepper ? stepper.getBoundingClientRect().width : 34;
+        delayLayout.style.setProperty('--spa-delay-fields-width', (labelWidth + width + 1 + arrowWidth) + 'px');
+      }
     }
   }
   window.addEventListener('resize', sizeDelaySaveButton);
