@@ -1140,6 +1140,125 @@ body .bypass-row label[for="bypass"] {
   }
   /* Add 1px outside the right edge of PTT delay arrow stacks as well. */
   .delay-save-layout .delay-row .stepper { margin-right:1px !important; }
+  /* Attenuation rows only: increase arrow WIDTH by 8px (26 to 34px).
+     The numeric field gives up that horizontal space. Arrow heights remain 20px. */
+  .attenuation-grid tbody td:nth-child(2) .row-controls .stepper {
+    flex:0 0 34px !important;
+    width:34px !important;
+    min-width:34px !important;
+  }
+  .attenuation-grid tbody td:nth-child(2) .row-controls .stepper button {
+    width:34px !important;
+    height:20px !important;
+    min-height:20px !important;
+  }
+  /* Widen only the triangle glyphs, not the buttons or their height. */
+  .attenuation-grid .stepper .wide-arrow {
+    display:inline-block;
+    transform:scaleX(1.9);
+    transform-origin:center;
+  }
+  /* Match PTT delay controls to the wider attenuation arrow treatment.
+     Only transfer 8px from each delay number input to its arrow stack. */
+  .delay-save-layout .delay-row .row-controls .stepper {
+    flex:0 0 34px !important;
+    width:34px !important;
+    min-width:34px !important;
+  }
+  .delay-save-layout .delay-row .row-controls .stepper button {
+    width:34px !important;
+    height:20px !important;
+    min-height:20px !important;
+    padding:0 !important;
+  }
+  .delay-save-layout .delay-row .row-controls input[type=number] {
+    flex:1 1 0 !important;
+    width:0 !important;
+    min-width:0 !important;
+  }
+  /* Match PTT numeric boxes to the actual rendered attenuation input width. */
+  .delay-save-layout .delay-row .row-controls input[type=number] {
+    flex:0 0 var(--spa-atten-input-width, 42px) !important;
+    width:var(--spa-atten-input-width, 42px) !important;
+    min-width:var(--spa-atten-input-width, 42px) !important;
+    box-sizing:border-box !important;
+  }
+  .delay-save-layout .stepper .wide-arrow {
+    display:inline-block;
+    transform:scaleX(1.9);
+    transform-origin:center;
+  }
+  /* Prevent the wider, three-digit PTT inputs and 34px arrow stacks from
+     extending underneath Save Delays. Keep the original side-by-side layout
+     whenever it fits; wrap Save Delays below only when space is insufficient. */
+  .delay-save-layout {
+    display:flex !important;
+    flex-wrap:wrap !important;
+    align-items:stretch !important;
+    box-sizing:border-box !important;
+  }
+  .delay-save-layout .delay-fields {
+    flex:1 0 max-content !important;
+    width:auto !important;
+    min-width:max-content !important;
+    max-width:100% !important;
+  }
+  .delay-save-layout .delay-row {
+    width:auto !important;
+    min-width:max-content !important;
+  }
+  .delay-save-layout .delay-row .row-controls {
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:max-content !important;
+  }
+  .delay-save-layout #saveDelaysButton {
+    flex:1 1 var(--spa-right-table-width, 172px) !important;
+    width:auto !important;
+    min-width:120px !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+  /* Keep Save Delays alongside both PTT rows, not wrapped underneath. */
+  .delay-save-layout {
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    gap:4px !important;
+    align-items:stretch !important;
+  }
+  .delay-save-layout .delay-fields {
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+  }
+  .delay-save-layout .delay-row {
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    width:auto !important;
+    min-width:0 !important;
+    gap:2px !important;
+  }
+  .delay-save-layout .delay-row label {
+    font-size:clamp(12px, 3.4vw, 16px) !important;
+    flex:0 0 auto !important;
+  }
+  .delay-save-layout .delay-row .row-controls {
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    gap:1px !important;
+  }
+  .delay-save-layout #saveDelaysButton {
+    flex:1 1 0 !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    padding-left:3px !important;
+    padding-right:3px !important;
+    font-size:clamp(12px, 3.6vw, 17px) !important;
+    white-space:nowrap !important;
+  }
 </style>
 </head>
 <body>
@@ -1213,8 +1332,8 @@ body .bypass-row label[for="bypass"] {
       <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
         <input id="delay1" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
         <span class="stepper">
-          <button type="button" onclick="stepDelay(1,1)">▲</button>
-          <button type="button" onclick="stepDelay(1,-1)">▼</button>
+          <button type="button" onclick="stepDelay(1,1)"><span class="wide-arrow">▲</span></button>
+          <button type="button" onclick="stepDelay(1,-1)"><span class="wide-arrow">▼</span></button>
         </span>
       </span>
     </div>
@@ -1223,8 +1342,8 @@ body .bypass-row label[for="bypass"] {
       <span class="row-controls" style="display:inline-flex;vertical-align:middle;">
         <input id="delay2" type="number" min="0" max="250" value="0" inputmode="numeric" enterkeyhint="done">
         <span class="stepper">
-          <button type="button" onclick="stepDelay(2,1)">▲</button>
-          <button type="button" onclick="stepDelay(2,-1)">▼</button>
+          <button type="button" onclick="stepDelay(2,1)"><span class="wide-arrow">▲</span></button>
+          <button type="button" onclick="stepDelay(2,-1)"><span class="wide-arrow">▼</span></button>
         </span>
       </span>
     </div>
@@ -1369,8 +1488,8 @@ function buildBandTable() {
       '<input id="attn-' + i + '" type="number" min="0" max="15" value="15" ' +
       'inputmode="numeric" enterkeyhint="done">' +
       '<div class="stepper">' +
-      '<button type="button" onclick="stepAttn(' + i + ',1)">▲</button>' +
-      '<button type="button" onclick="stepAttn(' + i + ',-1)">▼</button>' +
+      '<button type="button" onclick="stepAttn(' + i + ',1)"><span class="wide-arrow">▲</span></button>' +
+      '<button type="button" onclick="stepAttn(' + i + ',-1)"><span class="wide-arrow">▼</span></button>' +
       '</div></div></td>';
 
     tbody.appendChild(tr);
@@ -1827,7 +1946,10 @@ setBleDependentControlsEnabled(bleConnected);
       var borders = px(css.borderLeftWidth) + px(css.borderRightWidth) + 2;
       var arrowRightGap = px(window.getComputedStyle(stepper).marginRight);
       var usable = tableWidth - borders - bandInset - valueInset - gap - arrowWidth - arrowRightGap;
-      var fieldWidth = Math.max(28, Math.floor(usable / 2));
+      // Restore the original, wider Band-button allocation independently of
+      // the new 34px arrow stack. Keep table width fixed and take any
+      // additional space from the attenuation number field only.
+      var fieldWidth = Math.max(28, Math.floor(usable / 2) + 8);
       var bandColumn = fieldWidth + bandInset;
       var valueColumn = tableWidth - borders - bandColumn;
 
@@ -1837,7 +1959,7 @@ setBleDependentControlsEnabled(bleConnected);
       band.style.setProperty('width', fieldWidth + 'px', 'important');
       value.style.setProperty('box-sizing', 'border-box', 'important');
       // Let the input flex to the available space in each row, keeping
-      // the 26px stepper anchored at the same right edge in every cell.
+      // the stepper anchored at the same right edge in every cell.
       value.style.setProperty('flex', '1 1 0', 'important');
       value.style.setProperty('width', '0', 'important');
       value.style.setProperty('min-width', '0', 'important');
@@ -1896,6 +2018,12 @@ setBleDependentControlsEnabled(bleConnected);
     if (!table || !delayLayout || !grid) return;
     delayLayout.style.setProperty('--spa-right-table-width', table.getBoundingClientRect().width + 'px');
     delayLayout.style.setProperty('--spa-controls-width', grid.getBoundingClientRect().width + 'px');
+    // Use the actual attenuation value input width, including after iPhone resize.
+    var attenuationInput = document.querySelector('.attenuation-grid tbody td:nth-child(2) input[type=number]');
+    if (attenuationInput) {
+      var width = attenuationInput.getBoundingClientRect().width;
+      if (width > 0) delayLayout.style.setProperty('--spa-atten-input-width', width + 'px');
+    }
   }
   window.addEventListener('resize', sizeDelaySaveButton);
   sizeDelaySaveButton();
