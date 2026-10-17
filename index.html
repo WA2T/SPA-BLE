@@ -1302,8 +1302,8 @@ body .bypass-row label[for="bypass"] {
     box-sizing:border-box !important;
   }
   .delay-save-layout .delay-row label {
-    font-size:clamp(13px, 3.6vw, 16px) !important;
-    letter-spacing:-0.3px;
+    font-size:clamp(15px, 3.9vw, 18px) !important;
+    letter-spacing:-0.4px;
     overflow:visible;
   }
   .delay-save-layout #saveDelaysButton {
@@ -1318,6 +1318,13 @@ body .bypass-row label[for="bypass"] {
     height:100% !important;
     margin:0 !important;
     box-sizing:border-box !important;
+  }
+  /* Save Delays caption matches Submit All on desktop and mobile. */
+  .delay-save-layout #saveDelaysButton {
+    font-size:21px !important;
+  }
+  @media (max-width:480px) {
+    .delay-save-layout #saveDelaysButton { font-size:20px !important; }
   }
   /* Preserve the original tight 1px spacing immediately before each
      arrow stack.  The matching PTT input-width logic remains unchanged. */
