@@ -1376,6 +1376,16 @@ body .bypass-row label[for="bypass"] {
     body > h1 { margin-bottom:7px !important; }
     .status-connect-row { margin-bottom:2px !important; }
   }
+  /* Redistribute a little of the unused bottom space around both section
+     headings, without changing their typography or adjacent controls. */
+  @media (max-width:480px) {
+    body > h2:first-of-type { margin-top:13px !important; margin-bottom:10px !important; }
+    body > h2:last-of-type { margin-top:13px !important; margin-bottom:13px !important; }
+  }
+  @media (max-width:480px) and (max-height:750px) {
+    body > h2:first-of-type { margin-top:10px !important; margin-bottom:8px !important; }
+    body > h2:last-of-type { margin-top:11px !important; margin-bottom:10px !important; }
+  }
 </style>
 </head>
 <body>
