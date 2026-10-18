@@ -1359,6 +1359,23 @@ body .bypass-row label[for="bypass"] {
     margin-left:0 !important;
     margin-right:1px !important;
   }
+
+  /* Larger Current Band / Attenuation readouts, compensated by nearby whitespace. */
+  .status-connect-row .current-status { font-size:20px; }
+  @media (max-width:480px) {
+    body > h1 { margin-bottom:4px !important; }
+    .status-connect-row { margin-bottom:3px !important; }
+    .status-connect-row .current-status {
+      font-size:17px !important;
+      padding-top:4px !important;
+      padding-bottom:4px !important;
+      row-gap:2px !important;
+    }
+  }
+  @media (max-width:480px) and (max-height:750px) {
+    body > h1 { margin-bottom:2px !important; }
+    .status-connect-row { margin-bottom:2px !important; }
+  }
 </style>
 </head>
 <body>
