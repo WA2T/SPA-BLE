@@ -1679,7 +1679,7 @@ async function connectBLE() {
   try {
     renderBleConnectionState();
     device = await navigator.bluetooth.requestDevice({
-      filters: [{ name: 'SPA-BLE' }],
+      acceptAllDevices: true,
       optionalServices: [SERVICE_UUID]
     });
 
