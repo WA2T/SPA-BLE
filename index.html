@@ -1041,15 +1041,13 @@ body .bypass-row label[for="bypass"] {
       max-height:42px !important;
     }
   }
-  /* Match the status box height while keeping equal effective text-to-edge
-     spacing horizontally and vertically. JS sets --ble-side-padding based on
-     the actual rendered status box height and button text line height. */
+  /* Match status box height; restore comfortable button horizontal padding. */
   .status-connect-row #connectionButton {
     box-sizing:border-box !important;
     align-self:stretch !important;
     height:auto !important;
     min-height:0 !important;
-    padding:0 var(--ble-side-padding, 12px) !important;
+    padding:0 10px !important;
     line-height:1.2 !important;
     white-space:nowrap !important;
     flex:0 0 auto !important;
@@ -1398,38 +1396,19 @@ body .bypass-row label[for="bypass"] {
 
 <div class="status-connect-row">
   <div class="current-status">
-    <span class="status-item"><span class="status-label">Band:</span><span id="currentBand" class="status-value">Connect</span></span>
-    <span class="status-item"><span class="status-label">Atten:</span><span id="currentAttn" class="status-value">Connect</span></span>
+    <span class="status-item"><span class="status-label">Band:</span><span id="currentBand" class="status-value">UNK</span></span>
+    <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">UNK</span></span>
   </div>
   <div class="spa-ptt-box" aria-label="PTT status"><span id="pttLed" class="spa-ptt-led"></span><span>PTT</span></div>
   <button id="connectionButton">BLE Connect</button>
 </div>
 
 
-<script>
-/* Keep BLE button exactly as tall as the adjacent status box. Set side
-   padding to its effective vertical text inset (including the border). */
-(function () {
-  const statusBox = document.querySelector('.status-connect-row .current-status');
-  const button = document.getElementById('connectionButton');
-  if (!statusBox || !button) return;
-  function syncConnectButtonPadding() {
-    const height = statusBox.getBoundingClientRect().height;
-    const style = getComputedStyle(button);
-    const fontSize = parseFloat(style.fontSize) || 16;
-    const lineHeight = parseFloat(style.lineHeight) || fontSize * 1.2;
-    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-    // Side padding + border should equal the effective vertical text inset.
-    const sidePadding = Math.max(0, (height - lineHeight) / 2 - borderLeft);
-    button.style.setProperty('--ble-side-padding', sidePadding.toFixed(1) + 'px');
+<style>
+  @media (max-width:480px) {
+    .status-connect-row #connectionButton { padding-left:8px !important; padding-right:8px !important; }
   }
-  syncConnectButtonPadding();
-  if (typeof ResizeObserver !== 'undefined') {
-    new ResizeObserver(syncConnectButtonPadding).observe(statusBox);
-  }
-  window.addEventListener('resize', syncConnectButtonPadding);
-})();
-</script>
+</style>
 
 <h2>TX Attenuation by Band (0 - 15 dB)</h2>
 
@@ -1601,8 +1580,8 @@ function setConnected(connected) {
   bleConnected = connected;
   renderBleConnectionState();
   if (!connected) {
-    $('currentBand').textContent = 'Connect';
-    $('currentAttn').textContent = 'Connect';
+    $('currentBand').textContent = 'UNK';
+    $('currentAttn').textContent = 'UNK';
     $('pttLed').classList.remove('active');
   }
 }
@@ -1796,7 +1775,7 @@ function parseStatus(text) {
     if (eq > 0) fields[part.substring(0, eq)] = part.substring(eq + 1);
   });
 
-  if (fields.BAND !== undefined) $('currentBand').textContent = (!fields.BAND || fields.BAND === 'Unknown') ? 'UNK' : fields.BAND;
+  if (fields.BAND !== undefined) $('currentBand').textContent = (!fields.BAND || fields.BAND === 'Unknown') ? 'Unknown' : fields.BAND;
   if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
   if (fields.PTT !== undefined) $('pttLed').classList.toggle('active', fields.PTT === '1');
   // A PTT-only event must not clear user-command confirmation state.
