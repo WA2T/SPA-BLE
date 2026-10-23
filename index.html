@@ -1421,6 +1421,27 @@ body .bypass-row label[for="bypass"] {
     .status-connect-row #connectionButton { padding-left:6px !important; padding-right:6px !important; }
   }
 
+/* PC only: remove native browser number spinners, since the page already
+   provides dedicated up/down controls. This prevents the browser from
+   reserving asymmetric space within the numeric field. */
+@media (min-width: 481px) {
+  .attenuation-grid .row-controls input[type="number"],
+  .delay-save-layout .delay-row .row-controls input[type="number"] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+    box-sizing: border-box !important;
+  }
+  .attenuation-grid .row-controls input[type="number"]::-webkit-inner-spin-button,
+  .attenuation-grid .row-controls input[type="number"]::-webkit-outer-spin-button,
+  .delay-save-layout .delay-row .row-controls input[type="number"]::-webkit-inner-spin-button,
+  .delay-save-layout .delay-row .row-controls input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+}
+
 /* Desktop numeric alignment; retain existing control dimensions. */
 @media (min-width: 481px) {
   .attenuation-grid .row-controls input[type="number"],
@@ -1632,23 +1653,72 @@ function buildBandTable() {
     const input = $('attn-' + i);
     input.addEventListener('input', () => { attnDirty[i] = true; });
 
-    // iPhone numeric keyboards may dismiss with Done without generating
-    // a keydown Enter event. The change event commits the edited value.
-    input.addEventListener('change', async () => {
-      if (attnDirty[i]) {
-        await sendAttn(i);
-      }
-    });
-
-    // Keep Enter support for desktop and browsers that do generate Enter.
-    input.addEventListener('keydown', async event => {
+    // Manual edits: Enter on PC, Done/change/blur on iPhone.
+    // Commit only once, even when Enter also causes change and blur.
+    input.addEventListener('change', () => commitManualAttn(i));
+    input.addEventListener('blur', () => commitManualAttn(i));
+    input.addEventListener('keydown', event => {
       if (event.key === 'Enter') {
         event.preventDefault();
-        await sendAttn(i);
+        commitManualAttn(i);
         input.blur();
       }
     });
   });
+}
+
+// Commit manually entered numbers independently of custom arrow clicks.
+// Mark the edit handled before awaiting BLE so change/blur cannot duplicate it.
+async function commitManualAttn(i) {
+  if (!attnDirty[i]) return;
+  const input = $('attn-' + i);
+  const entered = input.value;
+  attnDirty[i] = false;
+  const ok = await sendAttn(i);
+  if (!ok && input.value === entered) attnDirty[i] = true;
+}
+
+async function commitManualDelay(which) {
+  const i = which - 1;
+  if (!delayDirty[i]) return;
+  const input = $('delay' + which);
+  const entered = input.value;
+  delayDirty[i] = false;
+  const ok = await sendDelay(which);
+  if (!ok && input.value === entered) delayDirty[i] = true;
+}
+
+// Custom arrows commit automatically. Debounce rapid clicks so the latest
+// requested value is sent rather than queuing every intermediate value.
+const stepCommitTimers = new Map();
+let stepCommitBusy = false;
+const stepCommitPending = new Map();
+
+function scheduleStepCommit(key, command, commit) {
+  clearTimeout(stepCommitTimers.get(key));
+  stepCommitTimers.set(key, setTimeout(() => {
+    stepCommitTimers.delete(key);
+    stepCommitPending.set(key, { command, commit });
+    flushStepCommits();
+  }, 90));
+}
+
+async function flushStepCommits() {
+  if (stepCommitBusy || !commandCharacteristic) return;
+  stepCommitBusy = true;
+  try {
+    while (stepCommitPending.size && commandCharacteristic) {
+      const [key, entry] = stepCommitPending.entries().next().value;
+      stepCommitPending.delete(key);
+      // Existing SPA BLE firmware has one pending command slot. Keep the
+      // writes spaced apart and let normal status polling resume afterward.
+      const ok = await sendCommand(entry.command);
+      if (ok) entry.commit();
+      if (stepCommitPending.size) await new Promise(r => setTimeout(r, 90));
+    }
+  } finally {
+    stepCommitBusy = false;
+  }
 }
 
 function stepAttn(index, amount) {
@@ -1656,7 +1726,14 @@ function stepAttn(index, amount) {
   let v = Number(input.value);
   if (!Number.isFinite(v)) v = 15;
   input.value = Math.max(0, Math.min(15, v + amount));
-  input.dispatchEvent(new Event('input', { bubbles: true }));
+  attnDirty[index] = true;
+  const value = Number(input.value);
+  scheduleStepCommit('attn-' + index, 'ATTN=' + BANDS[index] + ',' + value, () => {
+    if (Number(input.value) === value) attnDirty[index] = false;
+    pendingMessage = { type: 'attn', band: BANDS[index], value };
+    armPendingTimeout();
+    setMessage('Setting ' + BANDS[index] + ' to ' + value + ' dB...');
+  });
 }
 
 function stepDelay(which, amount) {
@@ -1665,6 +1742,13 @@ function stepDelay(which, amount) {
   if (!Number.isFinite(v)) v = 0;
   input.value = Math.max(0, Math.min(250, v + amount));
   delayDirty[which - 1] = true;
+  const value = Number(input.value);
+  scheduleStepCommit('delay' + which, 'DELAY' + which + '=' + value, () => {
+    if (Number(input.value) === value) delayDirty[which - 1] = false;
+    pendingMessage = { type: 'delay', which, value };
+    armPendingTimeout();
+    setMessage('Setting PTT OUT ' + which + ' delay to ' + value + ' ms...');
+  });
 }
 
 function validNumber(id, min, max) {
@@ -1766,7 +1850,7 @@ function stopStatusPolling() {
 }
 
 async function requestStatus() {
-  if (commandCharacteristic) {
+  if (commandCharacteristic && !stepCommitBusy && !stepCommitTimers.size && !stepCommitPending.size) {
     await sendCommand('GET');
   }
 }
@@ -1996,30 +2080,18 @@ $('bypass').addEventListener('change', sendBypass);
 $('delay1').addEventListener('input', () => { delayDirty[0] = true; });
 $('delay2').addEventListener('input', () => { delayDirty[1] = true; });
 
-$('delay1').addEventListener('change', async function() {
-  if (!delayDirty[0]) return;
-  await sendDelay(1);
-});
-
-$('delay1').addEventListener('keydown', async event => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    await sendDelay(1);
-    $('delay1').blur();
-  }
-});
-$('delay2').addEventListener('change', async function() {
-  if (!delayDirty[1]) return;
-  await sendDelay(2);
-});
-
-$('delay2').addEventListener('keydown', async event => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    await sendDelay(2);
-    $('delay2').blur();
-  }
-});
+for (const which of [1, 2]) {
+  const input = $('delay' + which);
+  input.addEventListener('change', () => commitManualDelay(which));
+  input.addEventListener('blur', () => commitManualDelay(which));
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      commitManualDelay(which);
+      input.blur();
+    }
+  });
+}
 
 buildBandTable();
 setConnected(false);
