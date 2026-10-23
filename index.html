@@ -1390,6 +1390,13 @@ body .bypass-row label[for="bypass"] {
   @media (max-width:480px) {
     .status-connect-row .current-status { padding-left:7px; padding-right:7px; }
   }
+  /* Desktop BLE only: reduce just the space BETWEEN the attenuation tables
+     and BETWEEN the delay arrow stacks and Save Delays. Keep the label,
+     input, stepper and button sizes unchanged; mobile rules are untouched. */
+  @media (min-width:481px) {
+    .attenuation-grid { gap:6px !important; }
+    .delay-save-layout { padding-right:calc(var(--spa-right-table-width, 172px) + 2px) !important; }
+  }
   /* Read-only PTT indicator; stretches to match adjacent status and BLE button. */
   .spa-ptt-box{display:flex;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;gap:5px;padding:0 8px 0 7px;border:1px solid #697586;border-radius:4px;background:#222832;color:#f1f3f5;font-size:16px;font-weight:bold;white-space:nowrap;flex:0 0 auto;}
   .spa-ptt-led{display:inline-block;box-sizing:border-box;width:20px;height:20px;min-width:20px;border:1px solid #b0bac7;border-radius:50%;background:transparent;}
@@ -1468,7 +1475,7 @@ body .bypass-row label[for="bypass"] {
   <button type="button" id="saveDelaysButton" disabled>Save Delays</button>
 </div>
 
-<div class="footer" style="text-align:center;">
+<div class="footer" style="text-align:center; position:relative; left:-1px;">
   BLE status is refreshed automatically every second while connected
 </div>
 
@@ -2157,8 +2164,33 @@ setBleDependentControlsEnabled(bleConnected);
         // Match the left edge of the attenuation number boxes exactly.
         var inputLeft = attenuationInput.getBoundingClientRect().left;
         var layoutLeft = delayLayout.getBoundingClientRect().left;
-        var labelWidth = Math.max(0, inputLeft - layoutLeft);
+        // Desktop: shift the delay input/arrow group 6px right into space
+        // recovered from the left edge of Save Delays; keep input widths fixed.
+        var desktopExtra = 0;
+        var labelWidth = Math.max(0, inputLeft - layoutLeft) + desktopExtra;
         delayLayout.style.setProperty('--spa-delay-label-width', labelWidth + 'px');
+        // Preserve the original delay-field and Save Delays positions.
+        // Compress label text horizontally only when it exceeds its allotted
+        // column; never widen the label column or move the input/stepper.
+        delayLayout.querySelectorAll('.delay-row label').forEach(function(label) {
+          label.style.removeProperty('font-size');
+          label.style.removeProperty('overflow');
+          label.style.removeProperty('transform');
+          label.style.setProperty('transform-origin', 'left center');
+          var style = getComputedStyle(label);
+          var probe = document.createElement('span');
+          probe.textContent = label.textContent;
+          probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;';
+          probe.style.font = style.font;
+          probe.style.letterSpacing = style.letterSpacing;
+          document.body.appendChild(probe);
+          var naturalWidth = probe.getBoundingClientRect().width;
+          probe.remove();
+          var availableWidth = Math.max(1, labelWidth - 3);
+          if (naturalWidth > availableWidth) {
+            label.style.setProperty('transform', 'scaleX(' + (availableWidth / naturalWidth).toFixed(3) + ')');
+          }
+        });
         var stepper = delayLayout.querySelector('.delay-row .stepper');
         var arrowWidth = stepper ? stepper.getBoundingClientRect().width : 34;
         delayLayout.style.setProperty('--spa-delay-fields-width', (labelWidth + width + 1 + arrowWidth) + 'px');
