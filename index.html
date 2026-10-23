@@ -1385,6 +1385,11 @@ body .bypass-row label[for="bypass"] {
     body > h2:first-of-type { margin-top:9px !important; margin-bottom:7px !important; }
     body > h2:last-of-type { margin-top:10px !important; margin-bottom:9px !important; }
   }
+  /* Slightly reduce the Band/Attenuation box minimum width as requested. */
+  .status-connect-row .current-status { padding-left:9px; padding-right:9px; }
+  @media (max-width:480px) {
+    .status-connect-row .current-status { padding-left:7px; padding-right:7px; }
+  }
   /* Read-only PTT indicator; stretches to match adjacent status and BLE button. */
   .spa-ptt-box{display:flex;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;gap:5px;padding:0 7px;border:1px solid #697586;border-radius:4px;background:#222832;color:#f1f3f5;font-size:16px;font-weight:bold;white-space:nowrap;flex:0 0 auto;}
   .spa-ptt-led{display:inline-block;box-sizing:border-box;width:20px;height:20px;min-width:20px;border:1px solid #b0bac7;border-radius:50%;background:transparent;}
