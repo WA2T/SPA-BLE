@@ -1688,16 +1688,17 @@ async function commitManualDelay(which) {
   if (!ok && input.value === entered) delayDirty[i] = true;
 }
 
-// Custom arrows edit the displayed value only. They do not send BLE commands.
-// Ignore the change/blur generated when a focused input loses focus to an
-// arrow button; the user must explicitly press Done/Enter, a band button,
-// Submit All, or Save Delays to commit the changed value.
+// A stepper tap can blur the numeric field on iOS BEFORE a click fires.
+// Capture touchstart as well as pointerdown so blur/change cannot send it.
 let stepperPointerActiveUntil = 0;
-document.addEventListener('pointerdown', event => {
+function markStepperInteraction(event) {
   if (event.target.closest && event.target.closest('.stepper')) {
-    stepperPointerActiveUntil = Date.now() + 500;
+    stepperPointerActiveUntil = Date.now() + 1200;
   }
-}, true);
+}
+document.addEventListener('touchstart', markStepperInteraction, true);
+document.addEventListener('pointerdown', markStepperInteraction, true);
+document.addEventListener('mousedown', markStepperInteraction, true);
 function shouldCommitField() {
   return Date.now() >= stepperPointerActiveUntil;
 }
