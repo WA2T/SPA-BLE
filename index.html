@@ -1386,6 +1386,10 @@ body .bypass-row label[for="bypass"] {
     body > h2:first-of-type { margin-top:9px !important; margin-bottom:7px !important; }
     body > h2:last-of-type { margin-top:10px !important; margin-bottom:9px !important; }
   }
+  /* Read-only PTT indicator; stretches to match adjacent status and BLE button. */
+  .spa-ptt-box{display:flex;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;gap:7px;padding:0 9px;border:1px solid #697586;border-radius:4px;background:#222832;color:#f1f3f5;font-size:16px;font-weight:bold;white-space:nowrap;flex:0 0 auto;}
+  .spa-ptt-led{display:inline-block;box-sizing:border-box;width:20px;height:20px;min-width:20px;border:1px solid #b0bac7;border-radius:50%;background:transparent;}
+  .spa-ptt-led.active{background:#ed3434;border-color:#ff7777;}
 </style>
 </head>
 <body>
@@ -1396,6 +1400,7 @@ body .bypass-row label[for="bypass"] {
     <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">Connect</span></span>
     <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">Connect</span></span>
   </div>
+  <div class="spa-ptt-box" aria-label="PTT status"><span id="pttLed" class="spa-ptt-led"></span><span>PTT</span></div>
   <button id="connectionButton">BLE Connect</button>
 </div>
 
@@ -1597,6 +1602,7 @@ function setConnected(connected) {
   if (!connected) {
     $('currentBand').textContent = 'Connect';
     $('currentAttn').textContent = 'Connect';
+    $('pttLed').classList.remove('active');
   }
 }
 
@@ -1791,6 +1797,7 @@ function parseStatus(text) {
 
   if (fields.BAND !== undefined) $('currentBand').textContent = fields.BAND;
   if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
+  if (fields.PTT !== undefined) $('pttLed').classList.toggle('active', fields.PTT === '1');
 
   if (fields.BYPASS !== undefined) {
     const on = fields.BYPASS === '1';
