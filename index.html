@@ -1420,6 +1420,16 @@ body .bypass-row label[for="bypass"] {
   @media (max-width:480px) {
     .status-connect-row #connectionButton { padding-left:6px !important; padding-right:6px !important; }
   }
+
+/* Desktop numeric alignment; retain existing control dimensions. */
+@media (min-width: 481px) {
+  .attenuation-grid .row-controls input[type="number"],
+  .delay-save-layout .delay-row .row-controls input[type="number"] {
+    text-align: center !important;
+    text-indent: 0 !important;
+    direction: ltr !important;
+  }
+}
 </style>
 
 <h2>TX Attenuation by Band (0 - 15 dB)</h2>
