@@ -1655,8 +1655,8 @@ function buildBandTable() {
 
     // Manual edits: Enter on PC, Done/change/blur on iPhone.
     // Commit only once, even when Enter also causes change and blur.
-    input.addEventListener('change', () => commitManualAttn(i));
-    input.addEventListener('blur', () => commitManualAttn(i));
+    input.addEventListener('change', () => { if (shouldCommitField()) commitManualAttn(i); });
+    input.addEventListener('blur', () => { if (shouldCommitField()) commitManualAttn(i); });
     input.addEventListener('keydown', event => {
       if (event.key === 'Enter') {
         event.preventDefault();
@@ -1688,37 +1688,18 @@ async function commitManualDelay(which) {
   if (!ok && input.value === entered) delayDirty[i] = true;
 }
 
-// Custom arrows commit automatically. Debounce rapid clicks so the latest
-// requested value is sent rather than queuing every intermediate value.
-const stepCommitTimers = new Map();
-let stepCommitBusy = false;
-const stepCommitPending = new Map();
-
-function scheduleStepCommit(key, command, commit) {
-  clearTimeout(stepCommitTimers.get(key));
-  stepCommitTimers.set(key, setTimeout(() => {
-    stepCommitTimers.delete(key);
-    stepCommitPending.set(key, { command, commit });
-    flushStepCommits();
-  }, 90));
-}
-
-async function flushStepCommits() {
-  if (stepCommitBusy || !commandCharacteristic) return;
-  stepCommitBusy = true;
-  try {
-    while (stepCommitPending.size && commandCharacteristic) {
-      const [key, entry] = stepCommitPending.entries().next().value;
-      stepCommitPending.delete(key);
-      // Existing SPA BLE firmware has one pending command slot. Keep the
-      // writes spaced apart and let normal status polling resume afterward.
-      const ok = await sendCommand(entry.command);
-      if (ok) entry.commit();
-      if (stepCommitPending.size) await new Promise(r => setTimeout(r, 90));
-    }
-  } finally {
-    stepCommitBusy = false;
+// Custom arrows edit the displayed value only. They do not send BLE commands.
+// Ignore the change/blur generated when a focused input loses focus to an
+// arrow button; the user must explicitly press Done/Enter, a band button,
+// Submit All, or Save Delays to commit the changed value.
+let stepperPointerActiveUntil = 0;
+document.addEventListener('pointerdown', event => {
+  if (event.target.closest && event.target.closest('.stepper')) {
+    stepperPointerActiveUntil = Date.now() + 500;
   }
+}, true);
+function shouldCommitField() {
+  return Date.now() >= stepperPointerActiveUntil;
 }
 
 function stepAttn(index, amount) {
@@ -1727,13 +1708,6 @@ function stepAttn(index, amount) {
   if (!Number.isFinite(v)) v = 15;
   input.value = Math.max(0, Math.min(15, v + amount));
   attnDirty[index] = true;
-  const value = Number(input.value);
-  scheduleStepCommit('attn-' + index, 'ATTN=' + BANDS[index] + ',' + value, () => {
-    if (Number(input.value) === value) attnDirty[index] = false;
-    pendingMessage = { type: 'attn', band: BANDS[index], value };
-    armPendingTimeout();
-    setMessage('Setting ' + BANDS[index] + ' to ' + value + ' dB...');
-  });
 }
 
 function stepDelay(which, amount) {
@@ -1742,13 +1716,6 @@ function stepDelay(which, amount) {
   if (!Number.isFinite(v)) v = 0;
   input.value = Math.max(0, Math.min(250, v + amount));
   delayDirty[which - 1] = true;
-  const value = Number(input.value);
-  scheduleStepCommit('delay' + which, 'DELAY' + which + '=' + value, () => {
-    if (Number(input.value) === value) delayDirty[which - 1] = false;
-    pendingMessage = { type: 'delay', which, value };
-    armPendingTimeout();
-    setMessage('Setting PTT OUT ' + which + ' delay to ' + value + ' ms...');
-  });
 }
 
 function validNumber(id, min, max) {
@@ -1850,7 +1817,7 @@ function stopStatusPolling() {
 }
 
 async function requestStatus() {
-  if (commandCharacteristic && !stepCommitBusy && !stepCommitTimers.size && !stepCommitPending.size) {
+  if (commandCharacteristic) {
     await sendCommand('GET');
   }
 }
@@ -2082,8 +2049,8 @@ $('delay2').addEventListener('input', () => { delayDirty[1] = true; });
 
 for (const which of [1, 2]) {
   const input = $('delay' + which);
-  input.addEventListener('change', () => commitManualDelay(which));
-  input.addEventListener('blur', () => commitManualDelay(which));
+  input.addEventListener('change', () => { if (shouldCommitField()) commitManualDelay(which); });
+  input.addEventListener('blur', () => { if (shouldCommitField()) commitManualDelay(which); });
   input.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       event.preventDefault();
