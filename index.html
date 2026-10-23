@@ -1401,7 +1401,7 @@ body .bypass-row label[for="bypass"] {
 
 <div class="status-connect-row">
   <div class="current-status">
-    <span class="status-item"><span class="status-label">Curr. Band:</span><span id="currentBand" class="status-value">UNK</span></span>
+    <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">UNK</span></span>
     <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">UNK</span></span>
   </div>
   <div class="spa-ptt-box" aria-label="PTT status"><span id="pttLed" class="spa-ptt-led"></span><span>PTT</span></div>
@@ -1780,7 +1780,7 @@ function parseStatus(text) {
     if (eq > 0) fields[part.substring(0, eq)] = part.substring(eq + 1);
   });
 
-  if (fields.BAND !== undefined) $('currentBand').textContent = (!fields.BAND || fields.BAND === 'Unknown') ? 'Unknown' : fields.BAND;
+  if (fields.BAND !== undefined) $('currentBand').textContent = (!fields.BAND || /^(unknown|unk)$/i.test(fields.BAND.trim())) ? 'UNK' : fields.BAND;
   if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
   if (fields.PTT !== undefined) $('pttLed').classList.toggle('active', fields.PTT === '1');
   // A PTT-only event must not clear user-command confirmation state.
