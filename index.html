@@ -1798,6 +1798,8 @@ function parseStatus(text) {
   if (fields.BAND !== undefined) $('currentBand').textContent = fields.BAND;
   if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
   if (fields.PTT !== undefined) $('pttLed').classList.toggle('active', fields.PTT === '1');
+  // A PTT-only event must not clear user-command confirmation state.
+  if (Object.keys(fields).length === 1 && fields.PTT !== undefined) return;
 
   if (fields.BYPASS !== undefined) {
     const on = fields.BYPASS === '1';
