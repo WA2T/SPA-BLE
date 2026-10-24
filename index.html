@@ -2253,12 +2253,24 @@ setBleDependentControlsEnabled(bleConnected);
 </script>
 
 <script>
-// Offline support only; SPA BLE controls and timing remain unchanged.
+// SPA-BLE offline support: refresh cache when opened online, without reloading
+// the active page or interfering with Bluetooth operations.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/SPA-BLE/sw.js', { scope: '/SPA-BLE/' })
-      .then(reg => console.log('SPA-BLE offline cache registered:', reg.scope))
-      .catch(err => console.warn('Offline caching unavailable:', err));
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/SPA-BLE/sw.js', {
+        scope: '/SPA-BLE/', updateViaCache: 'none'
+      });
+      // Check for service-worker updates on each page load.
+      try { await reg.update(); } catch (_) { /* offline is expected */ }
+      // Refresh cached HTML for the next offline opening.
+      const worker = navigator.serviceWorker.controller || reg.active;
+      if (worker && navigator.onLine) {
+        worker.postMessage({ type: 'SPA_REFRESH_CACHE' });
+      }
+    } catch (err) {
+      console.warn('SPA-BLE offline cache unavailable:', err);
+    }
   });
 }
 </script>
