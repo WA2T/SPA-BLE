@@ -2252,5 +2252,16 @@ setBleDependentControlsEnabled(bleConnected);
 })();
 </script>
 
+<script>
+// Offline support only; SPA BLE controls and timing remain unchanged.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/SPA-BLE/sw.js', { scope: '/SPA-BLE/' })
+      .then(reg => console.log('SPA-BLE offline cache registered:', reg.scope))
+      .catch(err => console.warn('Offline caching unavailable:', err));
+  });
+}
+</script>
+
 </body>
 </html>
