@@ -15,7 +15,6 @@
   .current-status { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: fit-content; max-width: 100%; padding: 8px 10px; border: 1px solid #000; border-radius: 5px; }
   #connectionButton { white-space: nowrap; align-self: stretch; height: auto; margin: 0; }
   .status-item { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
-  .current-status .status-label, .current-status .status-value { white-space: nowrap; }
   .status-label { text-align: left; }
   .status-value { text-align: left; }
   @media (max-width: 480px) {
@@ -1041,13 +1040,15 @@ body .bypass-row label[for="bypass"] {
       max-height:42px !important;
     }
   }
-  /* Match status box height; restore comfortable button horizontal padding. */
+  /* Match the status box height while keeping equal effective text-to-edge
+     spacing horizontally and vertically. JS sets --ble-side-padding based on
+     the actual rendered status box height and button text line height. */
   .status-connect-row #connectionButton {
     box-sizing:border-box !important;
     align-self:stretch !important;
     height:auto !important;
     min-height:0 !important;
-    padding:0 8px !important;
+    padding:0 var(--ble-side-padding, 12px) !important;
     line-height:1.2 !important;
     white-space:nowrap !important;
     flex:0 0 auto !important;
@@ -1385,22 +1386,10 @@ body .bypass-row label[for="bypass"] {
     body > h2:first-of-type { margin-top:9px !important; margin-bottom:7px !important; }
     body > h2:last-of-type { margin-top:10px !important; margin-bottom:9px !important; }
   }
-  /* Slightly reduce the Band/Attenuation box minimum width as requested. */
-  .status-connect-row .current-status { padding-left:9px; padding-right:9px; }
-  @media (max-width:480px) {
-    .status-connect-row .current-status { padding-left:7px; padding-right:7px; }
-  }
-  /* Desktop BLE only: reduce just the space BETWEEN the attenuation tables
-     and BETWEEN the delay arrow stacks and Save Delays. Keep the label,
-     input, stepper and button sizes unchanged; mobile rules are untouched. */
-  @media (min-width:481px) {
-    .attenuation-grid { gap:6px !important; }
-    .delay-save-layout { padding-right:calc(var(--spa-right-table-width, 172px) + 2px) !important; }
-  }
   /* Read-only PTT indicator; stretches to match adjacent status and BLE button. */
-  .spa-ptt-box{display:flex;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;gap:5px;padding:0 8px 0 7px;border:1px solid #697586;border-radius:4px;background:#222832;color:#f1f3f5;font-size:16px;font-weight:bold;white-space:nowrap;flex:0 0 auto;}
+  .spa-ptt-box{display:flex;align-items:center;justify-content:center;align-self:stretch;box-sizing:border-box;gap:7px;padding:0 9px;border:1px solid #697586;border-radius:4px;background:#222832;color:#f1f3f5;font-size:16px;font-weight:bold;white-space:nowrap;flex:0 0 auto;}
   .spa-ptt-led{display:inline-block;box-sizing:border-box;width:20px;height:20px;min-width:20px;border:1px solid #b0bac7;border-radius:50%;background:transparent;}
-  .spa-ptt-led.active{background:#ed3434;border-color:#ff7777;}
+  .spa-ptt-led.active{background:#ed3434;border-color:#ffffff;}
 </style>
 </head>
 <body>
@@ -1408,50 +1397,38 @@ body .bypass-row label[for="bypass"] {
 
 <div class="status-connect-row">
   <div class="current-status">
-    <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">UNK</span></span>
-    <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">UNK</span></span>
+    <span class="status-item"><span class="status-label">Current Band:</span><span id="currentBand" class="status-value">Connect</span></span>
+    <span class="status-item"><span class="status-label">Attenuation:</span><span id="currentAttn" class="status-value">Connect</span></span>
   </div>
   <div class="spa-ptt-box" aria-label="PTT status"><span id="pttLed" class="spa-ptt-led"></span><span>PTT</span></div>
   <button id="connectionButton">BLE Connect</button>
 </div>
 
 
-<style>
-  @media (max-width:480px) {
-    .status-connect-row #connectionButton { padding-left:6px !important; padding-right:6px !important; }
+<script>
+/* Keep BLE button exactly as tall as the adjacent status box. Set side
+   padding to its effective vertical text inset (including the border). */
+(function () {
+  const statusBox = document.querySelector('.status-connect-row .current-status');
+  const button = document.getElementById('connectionButton');
+  if (!statusBox || !button) return;
+  function syncConnectButtonPadding() {
+    const height = statusBox.getBoundingClientRect().height;
+    const style = getComputedStyle(button);
+    const fontSize = parseFloat(style.fontSize) || 16;
+    const lineHeight = parseFloat(style.lineHeight) || fontSize * 1.2;
+    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+    // Side padding + border should equal the effective vertical text inset.
+    const sidePadding = Math.max(0, (height - lineHeight) / 2 - borderLeft);
+    button.style.setProperty('--ble-side-padding', sidePadding.toFixed(1) + 'px');
   }
-
-/* PC only: remove native browser number spinners, since the page already
-   provides dedicated up/down controls. This prevents the browser from
-   reserving asymmetric space within the numeric field. */
-@media (min-width: 481px) {
-  .attenuation-grid .row-controls input[type="number"],
-  .delay-save-layout .delay-row .row-controls input[type="number"] {
-    -moz-appearance: textfield !important;
-    appearance: textfield !important;
-    padding-left: 2px !important;
-    padding-right: 2px !important;
-    box-sizing: border-box !important;
+  syncConnectButtonPadding();
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncConnectButtonPadding).observe(statusBox);
   }
-  .attenuation-grid .row-controls input[type="number"]::-webkit-inner-spin-button,
-  .attenuation-grid .row-controls input[type="number"]::-webkit-outer-spin-button,
-  .delay-save-layout .delay-row .row-controls input[type="number"]::-webkit-inner-spin-button,
-  .delay-save-layout .delay-row .row-controls input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none !important;
-    margin: 0 !important;
-  }
-}
-
-/* Desktop numeric alignment; retain existing control dimensions. */
-@media (min-width: 481px) {
-  .attenuation-grid .row-controls input[type="number"],
-  .delay-save-layout .delay-row .row-controls input[type="number"] {
-    text-align: center !important;
-    text-indent: 0 !important;
-    direction: ltr !important;
-  }
-}
-</style>
+  window.addEventListener('resize', syncConnectButtonPadding);
+})();
+</script>
 
 <h2>TX Attenuation by Band (0 - 15 dB)</h2>
 
@@ -1506,7 +1483,7 @@ body .bypass-row label[for="bypass"] {
   <button type="button" id="saveDelaysButton" disabled>Save Delays</button>
 </div>
 
-<div class="footer" style="text-align:center; position:relative; left:-1px;">
+<div class="footer" style="text-align:center;">
   BLE status is refreshed automatically every second while connected
 </div>
 
@@ -1623,8 +1600,8 @@ function setConnected(connected) {
   bleConnected = connected;
   renderBleConnectionState();
   if (!connected) {
-    $('currentBand').textContent = 'UNK';
-    $('currentAttn').textContent = 'UNK';
+    $('currentBand').textContent = 'Connect';
+    $('currentAttn').textContent = 'Connect';
     $('pttLed').classList.remove('active');
   }
 }
@@ -1653,54 +1630,23 @@ function buildBandTable() {
     const input = $('attn-' + i);
     input.addEventListener('input', () => { attnDirty[i] = true; });
 
-    // Manual edits: Enter on PC, Done/change/blur on iPhone.
-    // Commit only once, even when Enter also causes change and blur.
-    input.addEventListener('change', () => { if (shouldCommitField()) commitManualAttn(i); });
-    input.addEventListener('blur', () => { if (shouldCommitField()) commitManualAttn(i); });
-    input.addEventListener('keydown', event => {
+    // iPhone numeric keyboards may dismiss with Done without generating
+    // a keydown Enter event. The change event commits the edited value.
+    input.addEventListener('change', async () => {
+      if (attnDirty[i]) {
+        await sendAttn(i);
+      }
+    });
+
+    // Keep Enter support for desktop and browsers that do generate Enter.
+    input.addEventListener('keydown', async event => {
       if (event.key === 'Enter') {
         event.preventDefault();
-        commitManualAttn(i);
+        await sendAttn(i);
         input.blur();
       }
     });
   });
-}
-
-// Commit manually entered numbers independently of custom arrow clicks.
-// Mark the edit handled before awaiting BLE so change/blur cannot duplicate it.
-async function commitManualAttn(i) {
-  if (!attnDirty[i]) return;
-  const input = $('attn-' + i);
-  const entered = input.value;
-  attnDirty[i] = false;
-  const ok = await sendAttn(i);
-  if (!ok && input.value === entered) attnDirty[i] = true;
-}
-
-async function commitManualDelay(which) {
-  const i = which - 1;
-  if (!delayDirty[i]) return;
-  const input = $('delay' + which);
-  const entered = input.value;
-  delayDirty[i] = false;
-  const ok = await sendDelay(which);
-  if (!ok && input.value === entered) delayDirty[i] = true;
-}
-
-// A stepper tap can blur the numeric field on iOS BEFORE a click fires.
-// Capture touchstart as well as pointerdown so blur/change cannot send it.
-let stepperPointerActiveUntil = 0;
-function markStepperInteraction(event) {
-  if (event.target.closest && event.target.closest('.stepper')) {
-    stepperPointerActiveUntil = Date.now() + 1200;
-  }
-}
-document.addEventListener('touchstart', markStepperInteraction, true);
-document.addEventListener('pointerdown', markStepperInteraction, true);
-document.addEventListener('mousedown', markStepperInteraction, true);
-function shouldCommitField() {
-  return Date.now() >= stepperPointerActiveUntil;
 }
 
 function stepAttn(index, amount) {
@@ -1708,7 +1654,7 @@ function stepAttn(index, amount) {
   let v = Number(input.value);
   if (!Number.isFinite(v)) v = 15;
   input.value = Math.max(0, Math.min(15, v + amount));
-  attnDirty[index] = true;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function stepDelay(which, amount) {
@@ -1849,11 +1795,9 @@ function parseStatus(text) {
     if (eq > 0) fields[part.substring(0, eq)] = part.substring(eq + 1);
   });
 
-  if (fields.BAND !== undefined) $('currentBand').textContent = (!fields.BAND || /^(unknown|unk)$/i.test(fields.BAND.trim())) ? 'UNK' : fields.BAND;
+  if (fields.BAND !== undefined) $('currentBand').textContent = fields.BAND;
   if (fields.ATTN !== undefined) $('currentAttn').textContent = fields.ATTN + ' dB';
   if (fields.PTT !== undefined) $('pttLed').classList.toggle('active', fields.PTT === '1');
-  // A PTT-only event must not clear user-command confirmation state.
-  if (Object.keys(fields).length === 1 && fields.PTT !== undefined) return;
 
   if (fields.BYPASS !== undefined) {
     const on = fields.BYPASS === '1';
@@ -2048,18 +1992,30 @@ $('bypass').addEventListener('change', sendBypass);
 $('delay1').addEventListener('input', () => { delayDirty[0] = true; });
 $('delay2').addEventListener('input', () => { delayDirty[1] = true; });
 
-for (const which of [1, 2]) {
-  const input = $('delay' + which);
-  input.addEventListener('change', () => { if (shouldCommitField()) commitManualDelay(which); });
-  input.addEventListener('blur', () => { if (shouldCommitField()) commitManualDelay(which); });
-  input.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      commitManualDelay(which);
-      input.blur();
-    }
-  });
-}
+$('delay1').addEventListener('change', async function() {
+  if (!delayDirty[0]) return;
+  await sendDelay(1);
+});
+
+$('delay1').addEventListener('keydown', async event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    await sendDelay(1);
+    $('delay1').blur();
+  }
+});
+$('delay2').addEventListener('change', async function() {
+  if (!delayDirty[1]) return;
+  await sendDelay(2);
+});
+
+$('delay2').addEventListener('keydown', async event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    await sendDelay(2);
+    $('delay2').blur();
+  }
+});
 
 buildBandTable();
 setConnected(false);
@@ -2214,33 +2170,8 @@ setBleDependentControlsEnabled(bleConnected);
         // Match the left edge of the attenuation number boxes exactly.
         var inputLeft = attenuationInput.getBoundingClientRect().left;
         var layoutLeft = delayLayout.getBoundingClientRect().left;
-        // Desktop: shift the delay input/arrow group 6px right into space
-        // recovered from the left edge of Save Delays; keep input widths fixed.
-        var desktopExtra = 0;
-        var labelWidth = Math.max(0, inputLeft - layoutLeft) + desktopExtra;
+        var labelWidth = Math.max(0, inputLeft - layoutLeft);
         delayLayout.style.setProperty('--spa-delay-label-width', labelWidth + 'px');
-        // Preserve the original delay-field and Save Delays positions.
-        // Compress label text horizontally only when it exceeds its allotted
-        // column; never widen the label column or move the input/stepper.
-        delayLayout.querySelectorAll('.delay-row label').forEach(function(label) {
-          label.style.removeProperty('font-size');
-          label.style.removeProperty('overflow');
-          label.style.removeProperty('transform');
-          label.style.setProperty('transform-origin', 'left center');
-          var style = getComputedStyle(label);
-          var probe = document.createElement('span');
-          probe.textContent = label.textContent;
-          probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;';
-          probe.style.font = style.font;
-          probe.style.letterSpacing = style.letterSpacing;
-          document.body.appendChild(probe);
-          var naturalWidth = probe.getBoundingClientRect().width;
-          probe.remove();
-          var availableWidth = Math.max(1, labelWidth - 3);
-          if (naturalWidth > availableWidth) {
-            label.style.setProperty('transform', 'scaleX(' + (availableWidth / naturalWidth).toFixed(3) + ')');
-          }
-        });
         var stepper = delayLayout.querySelector('.delay-row .stepper');
         var arrowWidth = stepper ? stepper.getBoundingClientRect().width : 34;
         delayLayout.style.setProperty('--spa-delay-fields-width', (labelWidth + width + 1 + arrowWidth) + 'px');
@@ -2250,29 +2181,6 @@ setBleDependentControlsEnabled(bleConnected);
   window.addEventListener('resize', sizeDelaySaveButton);
   sizeDelaySaveButton();
 })();
-</script>
-
-<script>
-// SPA-BLE offline support: refresh cache when opened online, without reloading
-// the active page or interfering with Bluetooth operations.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const reg = await navigator.serviceWorker.register('/SPA-BLE/sw.js', {
-        scope: '/SPA-BLE/', updateViaCache: 'none'
-      });
-      // Check for service-worker updates on each page load.
-      try { await reg.update(); } catch (_) { /* offline is expected */ }
-      // Refresh cached HTML for the next offline opening.
-      const worker = navigator.serviceWorker.controller || reg.active;
-      if (worker && navigator.onLine) {
-        worker.postMessage({ type: 'SPA_REFRESH_CACHE' });
-      }
-    } catch (err) {
-      console.warn('SPA-BLE offline cache unavailable:', err);
-    }
-  });
-}
 </script>
 
 </body>
